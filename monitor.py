@@ -2,8 +2,6 @@
 before using add _SmtpSender.ENVS_REQUIRED into your OS!
 """
 
-#TODO: add alert if cant find value on url
-
 import os
 import time
 from typing import *
@@ -176,14 +174,18 @@ class Monitor_DonorSvetofor(_MonitorURL):
         try:
             response = requests.get(self.MONITOR_URL, timeout=10)
             html_text = response.text
+            soup = BeautifulSoup(markup=html_text, features='html.parser')
         except:
             self.monitor_msg_body = f"LOST URL"
             return True
 
-        soup = BeautifulSoup(markup=html_text, features='html.parser')
-        svetofor_table = soup.find(name='table', attrs={"class": "donor-svetofor-restyle"})
-
+        tag_name = 'table'
+        svetofor_table = soup.find(name=tag_name, attrs={"class": "donor-svetofor-restyle"})
+        if not svetofor_table:
+            self.monitor_msg_body = f"URL WAS CHANGED! cant find {tag_name=}"
+            return True
         # print(svetofor_table)
+        # print()
         """
         <table class="donor-svetofor-restyle">
             <tbody>
@@ -206,12 +208,17 @@ class Monitor_DonorSvetofor(_MonitorURL):
             </tbody>
         </table>
         """
-        print()
 
-        svetofor_value_tags = svetofor_table.find_all(name="td")
+        tag_name = "td"
+        svetofor_value_tags = svetofor_table.find_all(name=tag_name)
+        if not svetofor_value_tags:
+            self.monitor_msg_body = f"URL WAS CHANGED! cant find {tag_name=}"
+            return True
+        if len(svetofor_value_tags) != 8:
+            self.monitor_msg_body = f"URL WAS CHANGED! not enough {len(svetofor_value_tags)=}"
+            return True
         # for tag in svetofor_value_tags:
         #     print(tag)
-
         """
         <td class="green">Rh +</td>
         <td class="green">Rh –</td>
