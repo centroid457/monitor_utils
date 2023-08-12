@@ -151,11 +151,14 @@ class Monitor_DonorSvetofor(_MonitorURL):
     MONITOR_NAME: str = "DONOR_SVETOFOR"
     MONITOR_URL: str = "https://donor.mos.ru/donoru/donorskij-svetofor/"
     monitor_value_last: str = "green"
+    MONITOR_INTERVAL_SEC: int = 1*60*60
 
     # OVERWRITING NEXT -------------------------------
     DONOR_GROUP: str = "3+"
 
     def check_state(self) -> bool:
+        self.monitor_msg_body = {}
+
         response = requests.get(self.MONITOR_URL, timeout=10)
         soup = BeautifulSoup(markup=response.text, features='html.parser')
 
@@ -201,7 +204,6 @@ class Monitor_DonorSvetofor(_MonitorURL):
         <td class="red">Rh –</td>
         """
 
-        self.monitor_msg_body = {}
         for i, td in enumerate(svetofor_value_tags, start=2):
             self.monitor_msg_body.update({f"{i // 2}{td.text[-1:]}": td.get("class")[0]})
 
