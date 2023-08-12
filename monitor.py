@@ -69,7 +69,7 @@ class _SmtpSender(_Environs):
         result = None
 
         if self._smtp is None:
-            print(f"\n _smtp_connect {self.__class__.__name__}")
+            print(f"_smtp_connect {self.__class__.__name__}")
             try:
                 self._smtp = smtplib.SMTP_SSL(self.SMTP_SERVER, self.SMTP_PORT, timeout=5)
             except Exception as exx:
@@ -170,7 +170,7 @@ class Monitor_DonorSvetofor(_MonitorURL):
     DONOR_GROUP: str = "3+"
 
     def check_state(self) -> bool:
-        self.monitor_msg_body = ""
+        self.monitor_msg_body = time.strftime("%Y.%m.%d %H:%M:%S=")
         donor_groups: Dict[str, str] = {}
 
         try:
@@ -178,13 +178,13 @@ class Monitor_DonorSvetofor(_MonitorURL):
             html_text = response.text
             soup = BeautifulSoup(markup=html_text, features='html.parser')
         except Exception as exx:
-            self.monitor_msg_body = f"LOST URL {exx!r}"
+            self.monitor_msg_body += f"LOST URL {exx!r}"
             return True
 
         tag_name = 'table'
         svetofor_table = soup.find(name=tag_name, attrs={"class": "donor-svetofor-restyle"})
         if not svetofor_table:
-            self.monitor_msg_body = f"URL WAS CHANGED! cant find {tag_name=}"
+            self.monitor_msg_body += f"URL WAS CHANGED! cant find {tag_name=}"
             return True
         # print(svetofor_table)
         # print()
@@ -214,10 +214,10 @@ class Monitor_DonorSvetofor(_MonitorURL):
         tag_name = "td"
         svetofor_value_tags = svetofor_table.find_all(name=tag_name)
         if not svetofor_value_tags:
-            self.monitor_msg_body = f"URL WAS CHANGED! cant find {tag_name=}"
+            self.monitor_msg_body += f"URL WAS CHANGED! cant find {tag_name=}"
             return True
         if len(svetofor_value_tags) != 8:
-            self.monitor_msg_body = f"URL WAS CHANGED! not enough {len(svetofor_value_tags)=}"
+            self.monitor_msg_body += f"URL WAS CHANGED! not enough {len(svetofor_value_tags)=}"
             return True
         # for tag in svetofor_value_tags:
         #     print(tag)
@@ -253,9 +253,9 @@ class Monitor_DonorSvetofor(_MonitorURL):
         alert_state = value_new != self.monitor_value_last
 
         if alert_state:
-            self.monitor_msg_body = f"DETECTED CHANGE[{self.DONOR_GROUP}//{self.monitor_value_last}->{value_new}]"
+            self.monitor_msg_body += f"DETECTED CHANGE[{self.DONOR_GROUP}//{self.monitor_value_last}->{value_new}]"
         else:
-            self.monitor_msg_body = f"SameState[{self.DONOR_GROUP}//{self.monitor_value_last}->{value_new}]"
+            self.monitor_msg_body += f"SameState[{self.DONOR_GROUP}//{self.monitor_value_last}->{value_new}]"
 
         self.monitor_msg_body += f"{donor_groups}"
 
