@@ -2,7 +2,6 @@
 before using add _SmtpSender.ENVS_REQUIRED into your OS!
 """
 
-#TODO: add alert if url lost
 #TODO: add alert if cant find value on url
 
 import os
@@ -121,7 +120,7 @@ class _SmtpSender(_Environs):
             print(msg)
             print("-"*80)
         else:
-            pass
+            pass    # dont add print msg! its already ON!
 
 
 # =====================================================================================================================
@@ -136,7 +135,7 @@ class _MonitorURL(_SmtpSender, threading.Thread):
     MONITOR_URL: str = "https://mail.ru/"
     MONITOR_INTERVAL_SEC: int = 1*1*60
     monitor_value_last: Any = None
-    monitor_msg_body: Any = None
+    monitor_msg_body: str = ""
 
     # DONT TOUCH! -------------------------------
     def run(self):
@@ -148,9 +147,14 @@ class _MonitorURL(_SmtpSender, threading.Thread):
 
     # OVERWRITE -------------------------------
     def check_state(self) -> bool:
+        """
+        True - if need ALERT!
+        """
         raise NotImplementedError()
 
 
+# =====================================================================================================================
+# =====================================================================================================================
 # =====================================================================================================================
 class Monitor_DonorSvetofor(_MonitorURL):
     """
@@ -166,11 +170,17 @@ class Monitor_DonorSvetofor(_MonitorURL):
     DONOR_GROUP: str = "4+"
 
     def check_state(self) -> bool:
-        self.monitor_msg_body = {}
+        self.monitor_msg_body = ""
+        donor_groups: Dict[str, str] = {}
 
-        response = requests.get(self.MONITOR_URL, timeout=10)
-        soup = BeautifulSoup(markup=response.text, features='html.parser')
+        try:
+            response = requests.get(self.MONITOR_URL, timeout=10)
+            html_text = response.text
+        except:
+            self.monitor_msg_body = f"LOST URL"
+            return True
 
+        soup = BeautifulSoup(markup=html_text, features='html.parser')
         svetofor_table = soup.find(name='table', attrs={"class": "donor-svetofor-restyle"})
 
         # print(svetofor_table)
@@ -214,10 +224,10 @@ class Monitor_DonorSvetofor(_MonitorURL):
         """
 
         for i, td in enumerate(svetofor_value_tags, start=2):
-            self.monitor_msg_body.update({f"{i // 2}{td.text[-1:]}": td.get("class")[0]})
+            donor_groups.update({f"{i // 2}{td.text[-1:]}": td.get("class")[0]})
 
-        for key, value in self.monitor_msg_body.items():
-            print(f"{key}={value}")
+        # for key, value in donor_groups.items():
+        #     print(f"{key}={value}")
         """
         1+=green
         1–=green
@@ -230,11 +240,16 @@ class Monitor_DonorSvetofor(_MonitorURL):
         """
         print()
 
-        value_new = self.monitor_msg_body.get(self.DONOR_GROUP)
+        value_new = donor_groups.get(self.DONOR_GROUP)
         alert_state = value_new != self.monitor_value_last
-        self.monitor_value_last = value_new
 
-        print(f"[{self.MONITOR_NAME}]={alert_state}")
+        if alert_state:
+            self.monitor_msg_body = f"DETECTED CHANGE [{self.DONOR_GROUP}//{self.monitor_value_last}->{value_new}]\n"
+
+        self.monitor_msg_body += f"{donor_groups}"
+
+        print(self.monitor_msg_body)
+        self.monitor_value_last = value_new
         return alert_state
 
 
