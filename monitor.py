@@ -165,7 +165,7 @@ class Monitor_DonorSvetofor(_MonitorURL):
     MONITOR_INTERVAL_SEC: int = 1*60*60
 
     # OVERWRITING NEXT -------------------------------
-    DONOR_GROUP: str = "4+"
+    DONOR_GROUP: str = "3+"
 
     def check_state(self) -> bool:
         self.monitor_msg_body = ""
