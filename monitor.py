@@ -12,7 +12,6 @@ import requests
 from bs4 import BeautifulSoup
 
 from email.mime.text import MIMEText
-from email.header import Header
 
 import smtplib
 
@@ -23,7 +22,7 @@ class _Environs:
     get environs from OS!
     if not exists some of them - RAISE!
     """
-    # OVEWRITING -------------------------------
+    # OVERWRITING NEXT -------------------------------
     ENVS_REQUIRED: List[str] = []
     """
     # add all ENVS with types STR!!! so usable in IDE!!!
@@ -38,13 +37,13 @@ class _Environs:
 
         self._environs_dict: Dict[str, Any] = {}
 
-        for enveron_name in self.ENVS_REQUIRED:
-            enveron_value = os.getenv(enveron_name, None)
-            if enveron_value is not None:
-                self._environs_dict.update({enveron_name: enveron_value})
-                setattr(self, enveron_name, enveron_value)
+        for environ_name in self.ENVS_REQUIRED:
+            environ_value = os.getenv(environ_name, None)
+            if environ_value is not None:
+                self._environs_dict.update({environ_name: environ_value})
+                setattr(self, environ_name, environ_value)
             else:
-                msg = f"[CRITICAL]there is no {enveron_name=} in OS! add it manually!!!"
+                msg = f"[CRITICAL]there is no {environ_name=} in OS! add it manually!!!"
                 print(msg)
                 raise Exception(msg)
 
@@ -76,14 +75,15 @@ class _SmtpSender(_Environs):
             print(f"\n _smtp_connect {self.__class__.__name__}")
             try:
                 self._smtp = smtplib.SMTP_SSL(self.SMTP_SERVER, self.SMTP_PORT, timeout=5)
-            except:
+            except Exception as exx:
+                print(f"[CRITICAL] CANT CONNECT {exx!r}")
                 self._smtp_clear()
 
         if self._smtp is not None:
             try:
                 result = self._smtp.login(self.ENV__MAIL_USER, self.ENV__MAIL_PWD)
-            except:
-                print(f"[CRITICAL] CANT CONNECT")
+            except Exception as exx:
+                print(f"[CRITICAL] CANT CONNECT {exx!r}")
 
             print(result)
 
@@ -97,11 +97,13 @@ class _SmtpSender(_Environs):
     def _smtp_clear(self) -> None:
         self._smtp = None
 
-    def _smtp_check_emply(self) -> bool:
+    def _smtp_check_empty(self) -> bool:
         return self._smtp is None
 
     # MSG =============================================================================================================
     def smtp_send(self, subject: str, body: Any) -> bool:
+        result = False
+
         FROM = self.ENV__MAIL_USER
         TO = FROM
         SUBJECT = subject
@@ -117,8 +119,11 @@ class _SmtpSender(_Environs):
             print("-"*80)
             print(msg)
             print("-"*80)
+            result = True
         else:
-            pass    # dont add print msg! its already ON!
+            pass    # don't add print msg! it's already ON!
+
+        return result
 
 
 # =====================================================================================================================
@@ -175,8 +180,8 @@ class Monitor_DonorSvetofor(_MonitorURL):
             response = requests.get(self.MONITOR_URL, timeout=10)
             html_text = response.text
             soup = BeautifulSoup(markup=html_text, features='html.parser')
-        except:
-            self.monitor_msg_body = f"LOST URL"
+        except Exception as exx:
+            self.monitor_msg_body = f"LOST URL {exx!r}"
             return True
 
         tag_name = 'table'
