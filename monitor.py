@@ -35,12 +35,9 @@ class _Environs:
     def __init__(self):
         super().__init__()
 
-        self._environs_dict: Dict[str, Any] = {}
-
         for environ_name in self.ENVS_REQUIRED:
             environ_value = os.getenv(environ_name, None)
             if environ_value is not None:
-                self._environs_dict.update({environ_name: environ_value})
                 setattr(self, environ_name, environ_value)
             else:
                 msg = f"[CRITICAL]there is no {environ_name=} in OS! add it manually!!!"
@@ -224,6 +221,7 @@ class Monitor_DonorSvetofor(_MonitorURL):
             return True
         # for tag in svetofor_value_tags:
         #     print(tag)
+        # print()
         """
         <td class="green">Rh +</td>
         <td class="green">Rh –</td>
@@ -239,6 +237,7 @@ class Monitor_DonorSvetofor(_MonitorURL):
             donor_groups.update({f"{i // 2}{td.text[-1:]}": td.get("class")[0]})
         # for key, value in donor_groups.items():
         #     print(f"{key}={value}")
+        # print()
         """
         1+=green
         1–=green
@@ -249,15 +248,14 @@ class Monitor_DonorSvetofor(_MonitorURL):
         4+=red
         4–=red
         """
-        print()
 
         value_new = donor_groups.get(self.DONOR_GROUP)
         alert_state = value_new != self.monitor_value_last
 
         if alert_state:
-            self.monitor_msg_body = f"DETECTED CHANGE [{self.DONOR_GROUP}//{self.monitor_value_last}->{value_new}]"
+            self.monitor_msg_body = f"DETECTED CHANGE[{self.DONOR_GROUP}//{self.monitor_value_last}->{value_new}]"
         else:
-            self.monitor_msg_body = f"noAlert [{self.DONOR_GROUP}//{self.monitor_value_last}->{value_new}]"
+            self.monitor_msg_body = f"SameState[{self.DONOR_GROUP}//{self.monitor_value_last}->{value_new}]"
 
         self.monitor_msg_body += f"{donor_groups}"
 
