@@ -70,18 +70,24 @@ class _SmtpSender(_Environs):
 
     # CONNECT =========================================================================================================
     def _smtp_connect(self) -> bool:
+        result = None
+
         if self._smtp is None:
             print(f"\n _smtp_connect {self.__class__.__name__}")
             try:
                 self._smtp = smtplib.SMTP_SSL(self.SMTP_SERVER, self.SMTP_PORT, timeout=5)
             except:
-                pass
+                self._smtp_clear()
 
         if self._smtp is not None:
-            result = self._smtp.login(self.ENV__MAIL_USER, self.ENV__MAIL_PWD)
+            try:
+                result = self._smtp.login(self.ENV__MAIL_USER, self.ENV__MAIL_PWD)
+            except:
+                print(f"[CRITICAL] CANT CONNECT")
+
             print(result)
 
-        return result[0] in [235, 503]
+        return result and result[0] in [235, 503]
 
     def _smtp_disconnect(self) -> None:
         if self._smtp:
@@ -154,7 +160,7 @@ class Monitor_DonorSvetofor(_MonitorURL):
     MONITOR_INTERVAL_SEC: int = 1*60*60
 
     # OVERWRITING NEXT -------------------------------
-    DONOR_GROUP: str = "3+"
+    DONOR_GROUP: str = "4+"
 
     def check_state(self) -> bool:
         self.monitor_msg_body = {}
