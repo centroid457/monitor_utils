@@ -237,7 +237,6 @@ class Monitor_DonorSvetofor(_MonitorURL):
 
         for i, td in enumerate(svetofor_value_tags, start=2):
             donor_groups.update({f"{i // 2}{td.text[-1:]}": td.get("class")[0]})
-
         # for key, value in donor_groups.items():
         #     print(f"{key}={value}")
         """
@@ -256,7 +255,9 @@ class Monitor_DonorSvetofor(_MonitorURL):
         alert_state = value_new != self.monitor_value_last
 
         if alert_state:
-            self.monitor_msg_body = f"DETECTED CHANGE [{self.DONOR_GROUP}//{self.monitor_value_last}->{value_new}]\n"
+            self.monitor_msg_body = f"DETECTED CHANGE [{self.DONOR_GROUP}//{self.monitor_value_last}->{value_new}]"
+        else:
+            self.monitor_msg_body = f"noAlert [{self.DONOR_GROUP}//{self.monitor_value_last}->{value_new}]"
 
         self.monitor_msg_body += f"{donor_groups}"
 
