@@ -66,7 +66,7 @@ class _SmtpSender(_Environs):
     def __init__(self):
         super().__init__()
 
-        self._smtp: tp.Optional[smtplib.SMTP_SSL] = None
+        self._smtp: Optional[smtplib.SMTP_SSL] = None
 
     # CONNECT =========================================================================================================
     def _smtp_connect(self) -> bool:
