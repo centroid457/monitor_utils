@@ -2,6 +2,9 @@
 before using add _SmtpSender.ENVS_REQUIRED into your OS!
 """
 
+#TODO: add alert if url lost
+#TODO: add alert if cant find value on url
+
 import os
 import time
 from typing import *
