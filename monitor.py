@@ -134,7 +134,11 @@ class _MonitorURL(_SmtpSender, threading.Thread):
     MONITOR_NAME: str = "MONITOR_NAME"
     MONITOR_URL: str = "https://mail.ru/"
     MONITOR_INTERVAL_SEC: int = 1*1*60
-    monitor_value_last: Any = None
+    MONITOR_TAG_ADDRESS: List[Tuple[str, Dict[str, str], str, Optional[int]]] = [
+        # (tag_name, attrs, text, index),
+    ]
+    MONITOR_GET_TAG_ATTR: Optional[str] = None  # if need text from found tag - leave blank!
+    monitor_value_last: Any = None  # if need first Alert - leave blank!
     monitor_msg_body: str = ""
 
     # DONT TOUCH! -------------------------------
@@ -145,11 +149,35 @@ class _MonitorURL(_SmtpSender, threading.Thread):
 
             time.sleep(self.MONITOR_INTERVAL_SEC)
 
+    def tag_get_step(self, source, address_step):
+        pass
+
     # OVERWRITE -------------------------------
     def check_state(self) -> bool:
         """
         True - if need ALERT!
         """
+        self.monitor_msg_body = time.strftime("%Y.%m.%d %H:%M:%S=")
+
+        try:
+            response = requests.get(self.MONITOR_URL, timeout=10)
+            html_text = response.text
+            soup = BeautifulSoup(markup=html_text, features='html.parser')
+        except Exception as exx:
+            self.monitor_msg_body += f"LOST URL {exx!r}"
+            return True
+
+        for tag_address_step in self.MONITOR_TAG_ADDRESS:
+            tag_name, attrs, text, index = tag_address_step
+            svetofor_table = soup.find(name=tag_name, attrs=attrs)
+
+
+
+
+
+
+
+
         raise NotImplementedError()
 
 
@@ -160,14 +188,18 @@ class Monitor_DonorSvetofor(_MonitorURL):
     """
     MONITOR donor svetofor and alert when BloodCenter need your blood group!
     """
+    # OVERWRITING NEXT -------------------------------
+    DONOR_BLOOD_GROUP: int = 3
+    DONOR_BLOOD_RH_POSITIVE: bool = True
+
     # OVERWRITTEN NOW -------------------------------
     MONITOR_NAME: str = "DONOR_SVETOFOR"
     MONITOR_URL: str = "https://donor.mos.ru/donoru/donorskij-svetofor/"
+    MONITOR_TAG_ADDRESS: List[Tuple[str, Dict[str, str],Optional[str], Optional[int]]] = [
+        ("table", {"class": "donor-svetofor-restyle"}, None, None),
+    ]
     monitor_value_last: str = "green"
     MONITOR_INTERVAL_SEC: int = 1*60*60
-
-    # OVERWRITING NEXT -------------------------------
-    DONOR_GROUP: str = "3+"
 
     def check_state(self) -> bool:
         self.monitor_msg_body = time.strftime("%Y.%m.%d %H:%M:%S=")
@@ -249,13 +281,14 @@ class Monitor_DonorSvetofor(_MonitorURL):
         4–=red
         """
 
-        value_new = donor_groups.get(self.DONOR_GROUP)
+        DONOR_BLOOD_GROUP_RH = f"{self.DONOR_BLOOD_GROUP}{'+' if self.DONOR_BLOOD_RH_POSITIVE else '-'}"
+        value_new = donor_groups.get(DONOR_BLOOD_GROUP_RH)
         alert_state = value_new != self.monitor_value_last
 
         if alert_state:
-            self.monitor_msg_body += f"DETECTED CHANGE[{self.DONOR_GROUP}//{self.monitor_value_last}->{value_new}]"
+            self.monitor_msg_body += f"DETECTED CHANGE[{DONOR_BLOOD_GROUP_RH}//{self.monitor_value_last}->{value_new}]"
         else:
-            self.monitor_msg_body += f"SameState[{self.DONOR_GROUP}//{self.monitor_value_last}->{value_new}]"
+            self.monitor_msg_body += f"SameState[{DONOR_BLOOD_GROUP_RH}//{self.monitor_value_last}->{value_new}]"
 
         self.monitor_msg_body += f"{donor_groups}"
 
