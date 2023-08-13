@@ -124,6 +124,18 @@ class _SmtpSender(_Environs):
 
 
 # =====================================================================================================================
+class _TagAddressChunk(NamedTuple):
+    """
+    structure to use as one step of full chain for finding Tag
+    all types used as any available variant for function Tag.find_all and actually passed directly to it!
+    """
+    name: Any
+    attrs: Any
+    string: Any
+    index: int
+
+
+# =====================================================================================================================
 class _MonitorURL(_SmtpSender, threading.Thread):
     """
     last interface!
@@ -134,51 +146,91 @@ class _MonitorURL(_SmtpSender, threading.Thread):
     MONITOR_NAME: str = "MONITOR_NAME"
     MONITOR_URL: str = "https://mail.ru/"
     MONITOR_INTERVAL_SEC: int = 1*1*60
-    MONITOR_TAG_ADDRESS: List[Tuple[str, Dict[str, str], str, Optional[int]]] = [
-        # (tag_name, attrs, text, index),
-    ]
-    MONITOR_GET_TAG_ATTR: Optional[str] = None  # if need text from found tag - leave blank!
-    monitor_value_last: Any = None  # if need first Alert - leave blank!
-    monitor_msg_body: str = ""
+    MONITOR_TAG__FIND_CHAIN: List[_TagAddressChunk] = []
+    MONITOR_TAG__ATTR_GET: Optional[str] = None     # if need text from found tag - leave blank!
+    _monitor_source: str = ""
+    _monitor_tag__found_last: Optional[BeautifulSoup] = None
+    monitor_tag__value_last: Any = None  # if need first Alert - leave blank!
+    _monitor_tag__value_prelast: Any = None
+
+    _monitor_msg_body: str = ""
 
     # DONT TOUCH! -------------------------------
     def run(self):
         while True:
-            if self.check_state():
-                self.smtp_send(subject=f"[ALERT] {self.MONITOR_NAME}", body=self.monitor_msg_body)
+            if self.monitor_check_state_need_alert():
+                self.smtp_send(subject=f"[ALERT] {self.MONITOR_NAME}", body=self._monitor_msg_body)
 
+            print(self._monitor_msg_body)
             time.sleep(self.MONITOR_INTERVAL_SEC)
 
-    def tag_get_step(self, source, address_step):
-        pass
+    def monitor_reinit_values(self) -> True:
+        self._monitor_msg_body = time.strftime("%Y.%m.%d %H:%M:%S=")
+        self._monitor_source = ""
+        self._monitor_tag__found_last = None
 
-    # OVERWRITE -------------------------------
-    def check_state(self) -> bool:
-        """
-        True - if need ALERT!
-        """
-        self.monitor_msg_body = time.strftime("%Y.%m.%d %H:%M:%S=")
+        return True
 
+    def monitor_source__load(self) -> bool:
+        self._monitor_source = ""
         try:
             response = requests.get(self.MONITOR_URL, timeout=10)
-            html_text = response.text
-            soup = BeautifulSoup(markup=html_text, features='html.parser')
-        except Exception as exx:
-            self.monitor_msg_body += f"LOST URL {exx!r}"
+            self._monitor_source = response.text
             return True
+        except Exception as exx:
+            self._monitor_msg_body += f"LOST URL {exx!r}"
 
-        for tag_address_step in self.MONITOR_TAG_ADDRESS:
-            tag_name, attrs, text, index = tag_address_step
-            svetofor_table = soup.find(name=tag_name, attrs=attrs)
+    def monitor_source__apply_chain(self) -> Optional[bool]:
+        if self._monitor_source:
+            try:
+                self._monitor_tag__found_last = BeautifulSoup(markup=self._monitor_source, features='html.parser')
+            except Exception as exx:
+                self._monitor_msg_body += f"URL WAS corrupted! can't parse {self._monitor_source=}\n{exx!r}"
+                return
 
+        try:
+            for chunk in self.MONITOR_TAG__FIND_CHAIN:
+                self._monitor_tag__found_last = self._monitor_tag__found_last.find_all(name=chunk.name, attrs=chunk.attrs, string=chunk.string)[chunk.index]
+        except Exception as exx:
+            self._monitor_msg_body += f"URL WAS CHANGED! can't find {chunk=}\n{exx!r}"
+            return
 
+        return True
 
+    def monitor_tag__apply_value(self) -> Optional[bool]:
+        if not self._monitor_tag__found_last:
+            return
 
+        self._monitor_tag__value_prelast = self.monitor_tag__value_last
 
+        if self.MONITOR_TAG__ATTR_GET is None:
+            self.monitor_tag__value_last = self._monitor_tag__found_last.string
+        else:
+            self.monitor_tag__value_last = self._monitor_tag__found_last[self.MONITOR_TAG__ATTR_GET][0]
 
+        return True
 
+    # OVERWRITE -------------------------------
+    def monitor_check_state_need_alert(self) -> bool:
+        """
+        True - if need ALERT!
+        the only one way to return False - all funcs get true(correctly finished) and old value == newValue.
+        Otherwise need send email!!!
+        """
+        if all([
+            self.monitor_reinit_values(),
+            self.monitor_source__load(),
+            self.monitor_source__apply_chain(),
+            self.monitor_tag__apply_value(),
+            ]):
 
-        raise NotImplementedError()
+            if self.monitor_tag__value_last != self._monitor_tag__value_prelast:
+                self._monitor_msg_body += f"DETECTED CHANGE[{self._monitor_tag__value_prelast}->{self.monitor_tag__value_last}]"
+            else:
+                self._monitor_msg_body += f"SameState[{self._monitor_tag__value_prelast}->{self.monitor_tag__value_last}]"
+                return False
+
+        return True
 
 
 # =====================================================================================================================
@@ -187,114 +239,44 @@ class _MonitorURL(_SmtpSender, threading.Thread):
 class Monitor_DonorSvetofor(_MonitorURL):
     """
     MONITOR donor svetofor and alert when BloodCenter need your blood group!
+
+    # STRUCTURE to find -------------------------------------
+    <table class="donor-svetofor-restyle">
+        <tbody>
+            <tr>
+                <th colspan="2">O (I)</th>
+                <th colspan="2">A (II)</th>
+                <th colspan="2">B (III)</th>
+                <th colspan="2">AB (IV)</th>
+            </tr>
+            <tr>
+                <td class="green">Rh +</td>
+                <td class="green">Rh –</td>
+                <td class="green">Rh +</td>
+                <td class="yellow">Rh –</td>
+                <td class="green">Rh +</td>
+                <td class="yellow">Rh –</td>
+                <td class="red">Rh +</td>
+                <td class="red">Rh –</td>
+            </tr>
+        </tbody>
+    </table>
     """
     # OVERWRITING NEXT -------------------------------
+    # KEEP FIRST!
     DONOR_BLOOD_GROUP: int = 3
-    DONOR_BLOOD_RH_POSITIVE: bool = True
+    DONOR_BLOOD_RH: str = "+"
 
     # OVERWRITTEN NOW -------------------------------
-    MONITOR_NAME: str = "DONOR_SVETOFOR"
-    MONITOR_URL: str = "https://donor.mos.ru/donoru/donorskij-svetofor/"
-    MONITOR_TAG_ADDRESS: List[Tuple[str, Dict[str, str],Optional[str], Optional[int]]] = [
-        ("table", {"class": "donor-svetofor-restyle"}, None, None),
+    MONITOR_NAME = "DONOR_SVETOFOR"
+    MONITOR_URL = "https://donor.mos.ru/donoru/donorskij-svetofor/"
+    MONITOR_TAG__FIND_CHAIN = [
+        _TagAddressChunk("table", {"class": "donor-svetofor-restyle"}, None, 0),
+        _TagAddressChunk("td", {}, f"Rh {DONOR_BLOOD_RH}", DONOR_BLOOD_GROUP - 1),
     ]
-    monitor_value_last: str = "green"
-    MONITOR_INTERVAL_SEC: int = 1*60*60
-
-    def check_state(self) -> bool:
-        self.monitor_msg_body = time.strftime("%Y.%m.%d %H:%M:%S=")
-        donor_groups: Dict[str, str] = {}
-
-        try:
-            response = requests.get(self.MONITOR_URL, timeout=10)
-            html_text = response.text
-            soup = BeautifulSoup(markup=html_text, features='html.parser')
-        except Exception as exx:
-            self.monitor_msg_body += f"LOST URL {exx!r}"
-            return True
-
-        tag_name = 'table'
-        svetofor_table = soup.find(name=tag_name, attrs={"class": "donor-svetofor-restyle"})
-        if not svetofor_table:
-            self.monitor_msg_body += f"URL WAS CHANGED! cant find {tag_name=}"
-            return True
-        # print(svetofor_table)
-        # print()
-        """
-        <table class="donor-svetofor-restyle">
-            <tbody>
-                <tr>
-                    <th colspan="2">O (I)</th>
-                    <th colspan="2">A (II)</th>
-                    <th colspan="2">B (III)</th>
-                    <th colspan="2">AB (IV)</th>
-                </tr>
-                <tr>
-                    <td class="green">Rh +</td>
-                    <td class="green">Rh –</td>
-                    <td class="green">Rh +</td>
-                    <td class="yellow">Rh –</td>
-                    <td class="green">Rh +</td>
-                    <td class="yellow">Rh –</td>
-                    <td class="red">Rh +</td>
-                    <td class="red">Rh –</td>
-                </tr>
-            </tbody>
-        </table>
-        """
-
-        tag_name = "td"
-        svetofor_value_tags = svetofor_table.find_all(name=tag_name)
-        if not svetofor_value_tags:
-            self.monitor_msg_body += f"URL WAS CHANGED! cant find {tag_name=}"
-            return True
-        if len(svetofor_value_tags) != 8:
-            self.monitor_msg_body += f"URL WAS CHANGED! not enough {len(svetofor_value_tags)=}"
-            return True
-        # for tag in svetofor_value_tags:
-        #     print(tag)
-        # print()
-        """
-        <td class="green">Rh +</td>
-        <td class="green">Rh –</td>
-        <td class="green">Rh +</td>
-        <td class="yellow">Rh –</td>
-        <td class="green">Rh +</td>
-        <td class="yellow">Rh –</td>
-        <td class="red">Rh +</td>
-        <td class="red">Rh –</td>
-        """
-
-        for i, td in enumerate(svetofor_value_tags, start=2):
-            donor_groups.update({f"{i // 2}{td.text[-1:]}": td.get("class")[0]})
-        # for key, value in donor_groups.items():
-        #     print(f"{key}={value}")
-        # print()
-        """
-        1+=green
-        1–=green
-        2+=green
-        2–=yellow
-        3+=green
-        3–=yellow
-        4+=red
-        4–=red
-        """
-
-        DONOR_BLOOD_GROUP_RH = f"{self.DONOR_BLOOD_GROUP}{'+' if self.DONOR_BLOOD_RH_POSITIVE else '-'}"
-        value_new = donor_groups.get(DONOR_BLOOD_GROUP_RH)
-        alert_state = value_new != self.monitor_value_last
-
-        if alert_state:
-            self.monitor_msg_body += f"DETECTED CHANGE[{DONOR_BLOOD_GROUP_RH}//{self.monitor_value_last}->{value_new}]"
-        else:
-            self.monitor_msg_body += f"SameState[{DONOR_BLOOD_GROUP_RH}//{self.monitor_value_last}->{value_new}]"
-
-        self.monitor_msg_body += f"{donor_groups}"
-
-        print(self.monitor_msg_body)
-        self.monitor_value_last = value_new
-        return alert_state
+    MONITOR_TAG__ATTR_GET = "class"
+    monitor_tag__value_last = "green"
+    MONITOR_INTERVAL_SEC = 1*60*60
 
 
 # =====================================================================================================================
