@@ -174,7 +174,7 @@ class _MonitorURL(_SmtpSender, threading.Thread):
     def monitor_source__load(self) -> bool:
         self._monitor_source = ""
         try:
-            response = requests.get(self.MONITOR_URL, timeout=10, allow_redirects=True)
+            response = requests.get(self.MONITOR_URL, timeout=10)
             self._monitor_source = response.text
             return True
         except Exception as exx:
