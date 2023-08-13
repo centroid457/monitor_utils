@@ -174,7 +174,7 @@ class _MonitorURL(_SmtpSender, threading.Thread):
     def monitor_source__load(self) -> bool:
         self._monitor_source = ""
         try:
-            response = requests.get(self.MONITOR_URL, timeout=10)
+            response = requests.get(self.MONITOR_URL, timeout=10, allow_redirects=True)
             self._monitor_source = response.text
             return True
         except Exception as exx:
@@ -190,7 +190,8 @@ class _MonitorURL(_SmtpSender, threading.Thread):
 
         try:
             for chunk in self.MONITOR_TAG__FIND_CHAIN:
-                self._monitor_tag__found_last = self._monitor_tag__found_last.find_all(name=chunk.name, attrs=chunk.attrs, string=chunk.string)[chunk.index]
+                tags = self._monitor_tag__found_last.find_all(name=chunk.name, attrs=chunk.attrs, string=chunk.string)
+                self._monitor_tag__found_last = tags[chunk.index]
         except Exception as exx:
             self._monitor_msg_body += f"URL WAS CHANGED! can't find {chunk=}\n{exx!r}"
             return
@@ -236,6 +237,7 @@ class _MonitorURL(_SmtpSender, threading.Thread):
 # =====================================================================================================================
 # =====================================================================================================================
 # =====================================================================================================================
+# IMPLEMENTATIONS =====================================================================================================
 class Monitor_DonorSvetofor(_MonitorURL):
     """
     MONITOR donor svetofor and alert when BloodCenter need your blood group!
@@ -264,15 +266,15 @@ class Monitor_DonorSvetofor(_MonitorURL):
     """
     # OVERWRITING NEXT -------------------------------
     # KEEP FIRST!
-    DONOR_BLOOD_GROUP: int = 3
-    DONOR_BLOOD_RH: str = "+"
+    _donor_blood_group: int = 3
+    _donor_blood_rh: str = "+"
 
     # OVERWRITTEN NOW -------------------------------
     MONITOR_NAME = "DONOR_SVETOFOR"
     MONITOR_URL = "https://donor.mos.ru/donoru/donorskij-svetofor/"
     MONITOR_TAG__FIND_CHAIN = [
         _TagAddressChunk("table", {"class": "donor-svetofor-restyle"}, None, 0),
-        _TagAddressChunk("td", {}, f"Rh {DONOR_BLOOD_RH}", DONOR_BLOOD_GROUP - 1),
+        _TagAddressChunk("td", {}, f"Rh {_donor_blood_rh}", _donor_blood_group - 1),
     ]
     MONITOR_TAG__ATTR_GET = "class"
     monitor_tag__value_last = "green"
@@ -280,8 +282,32 @@ class Monitor_DonorSvetofor(_MonitorURL):
 
 
 # =====================================================================================================================
+class Monitor_Sportmaster_AdidasSupernova2M(_MonitorURL):
+    """
+    MONITOR SportMasterPrices
+
+    # STRUCTURE to find -------------------------------------
+    <span data-selenium="amount" class="sm-amount__value">13 699 ₽</span>
+    """
+    # TODO: need resolve StatusCode401
+    # OVERWRITING NEXT -------------------------------
+    # KEEP FIRST!
+
+    # OVERWRITTEN NOW -------------------------------
+    MONITOR_NAME = "SPORTMASTER_AdidasSupernova2M"
+    MONITOR_URL = "https://www.sportmaster.ru/product/29647730299/"
+    MONITOR_TAG__FIND_CHAIN = [
+        _TagAddressChunk("span", {"class": "sm-amount__value"}, None, 0),
+    ]
+    MONITOR_TAG__ATTR_GET = None
+    monitor_tag__value_last = "13 699 ₽"
+    MONITOR_INTERVAL_SEC = 1*60*60
+
+
+# =====================================================================================================================
 def main():
     Monitor_DonorSvetofor().start()
+    # Monitor_Sportmaster_AdidasSupernova2M().start()
 
 
 if __name__ == "__main__":
