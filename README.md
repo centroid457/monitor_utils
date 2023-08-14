@@ -14,6 +14,9 @@ So I created it first as Monotor_DonorSvetofor
 2. monitor data changes in websites
 * tag text (regex used)
 * tag attribute (regex used)
+3. email alert if
+* html structure was changed so parsing can't be finished
+* url became unreachable
 
 ## IMPORTANT
 Now it works as Monotor_DonorSvetofor GBUZ "O.K. Gavrilov DZM Blood Center".  
