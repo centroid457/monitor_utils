@@ -11,9 +11,9 @@ So I created it first as Monotor_DonorSvetofor
 
 ## Features
 1. Threading each monitor
-2. monitor data changes in websites
-* tag text (regex used)
-* tag attribute (regex used)
+2. monitor website data changes
+* tag text
+* tag attribute
 3. email alert if
 * monitored data changed (from last state)
 * html structure was changed so parsing can't be finished
