@@ -185,12 +185,15 @@ class _MonitorURL(_SmtpSender, threading.Thread):
             try:
                 self._monitor_tag__found_last = BeautifulSoup(markup=self._monitor_source, features='html.parser')
             except Exception as exx:
-                self._monitor_msg_body += f"URL WAS corrupted! can't parse {self._monitor_source=}\n{exx!r}"
+                self._monitor_msg_body += f"[CRITICAL] can't parse {self._monitor_source=}\n{exx!r}"
                 return
+        else:
+            self._monitor_msg_body += f"[CRITICAL] empty {self._monitor_source=}"
+            return
 
         try:
             for chunk in self.MONITOR_TAG__FIND_CHAIN:
-                tags = self._monitor_tag__found_last.find_all(name=chunk.name, attrs=chunk.attrs, string=chunk.string)
+                tags = self._monitor_tag__found_last.find_all(name=chunk.name, attrs=chunk.attrs, string=chunk.string, limit=chunk.index + 1)
                 self._monitor_tag__found_last = tags[chunk.index]
         except Exception as exx:
             self._monitor_msg_body += f"URL WAS CHANGED! can't find {chunk=}\n{exx!r}"
