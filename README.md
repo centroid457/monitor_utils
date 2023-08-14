@@ -15,6 +15,7 @@ So I created it first as Monotor_DonorSvetofor
 * tag text (regex used)
 * tag attribute (regex used)
 3. email alert if
+* monitored data changed (from last state)
 * html structure was changed so parsing can't be finished
 * url became unreachable
 
