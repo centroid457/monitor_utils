@@ -241,31 +241,33 @@ class _MonitorURL(_SmtpSender, threading.Thread):
 # =====================================================================================================================
 # =====================================================================================================================
 # IMPLEMENTATIONS =====================================================================================================
+
+# =====================================================================================================================
 class Monitor_DonorSvetofor(_MonitorURL):
     """
     MONITOR donor svetofor and alert when BloodCenter need your blood group!
 
     # STRUCTURE to find -------------------------------------
-    <table class="donor-svetofor-restyle">
-        <tbody>
-            <tr>
-                <th colspan="2">O (I)</th>
-                <th colspan="2">A (II)</th>
-                <th colspan="2">B (III)</th>
-                <th colspan="2">AB (IV)</th>
-            </tr>
-            <tr>
-                <td class="green">Rh +</td>
-                <td class="green">Rh –</td>
-                <td class="green">Rh +</td>
-                <td class="yellow">Rh –</td>
-                <td class="green">Rh +</td>
-                <td class="yellow">Rh –</td>
-                <td class="red">Rh +</td>
-                <td class="red">Rh –</td>
-            </tr>
-        </tbody>
-    </table>
+<table class="donor-svetofor-restyle">
+    <tbody>
+        <tr>
+            <th colspan="2">O (I)</th>
+            <th colspan="2">A (II)</th>
+            <th colspan="2">B (III)</th>
+            <th colspan="2">AB (IV)</th>
+        </tr>
+        <tr>
+            <td class="green">Rh +</td>
+            <td class="green">Rh –</td>
+            <td class="green">Rh +</td>
+            <td class="yellow">Rh –</td>
+            <td class="green">Rh +</td>
+            <td class="yellow">Rh –</td>
+            <td class="red">Rh +</td>
+            <td class="red">Rh –</td>
+        </tr>
+    </tbody>
+</table>
     """
     # OVERWRITING NEXT -------------------------------
     # KEEP FIRST!
@@ -281,6 +283,68 @@ class Monitor_DonorSvetofor(_MonitorURL):
     ]
     MONITOR_TAG__ATTR_GET = "class"
     monitor_tag__value_last = "green"
+    MONITOR_INTERVAL_SEC = 1*60*60
+
+
+# =====================================================================================================================
+class Monitor_CbrKeyRate(_MonitorURL):
+    """
+    MONITOR CentralBankRussia KeyRate
+
+    # STRUCTURE to find -------------------------------------
+<div class="table-wrapper">
+  <div class="table-caption gray">% годовых</div>
+  <div class="table">
+    <table class="data">
+      <tr>
+        <th>Дата</th>
+        <th>Ставка</th>
+      </tr>
+      <tr>
+        <td>17.08.2023</td>
+        <td>12,00</td>
+      </tr>
+      <tr>
+        <td>16.08.2023</td>
+        <td>12,00</td>
+      </tr>
+      <tr>
+        <td>15.08.2023</td>
+        <td>12,00</td>
+      </tr>
+      <tr>
+        <td>14.08.2023</td>
+        <td>8,50</td>
+      </tr>
+      <tr>
+        <td>11.08.2023</td>
+        <td>8,50</td>
+      </tr>
+      <tr>
+        <td>10.08.2023</td>
+        <td>8,50</td>
+      </tr>
+    </table>
+  </div>
+  <div class="table-caption">
+    <p>
+	  Данные доступны с  17.09.2013 по 17.08.2023.
+	  </p>
+  </div>
+</div>
+    """
+    # OVERWRITING NEXT -------------------------------
+    # KEEP FIRST!
+
+    # OVERWRITTEN NOW -------------------------------
+    MONITOR_NAME = "CBR_KEYRATE"
+    MONITOR_URL = "https://cbr.ru/hd_base/KeyRate/"
+    MONITOR_TAG__FIND_CHAIN = [
+        _TagAddressChunk("div", {"class": "table-wrapper"}, None, 0),
+        _TagAddressChunk("td", {}, None, 1),
+    ]
+    MONITOR_TAG__ATTR_GET = None
+    monitor_tag__value_last = "12,00"
     MONITOR_INTERVAL_SEC = 1*60*60
 
 
@@ -310,6 +374,7 @@ class Monitor_Sportmaster_AdidasSupernova2M(_MonitorURL):
 # =====================================================================================================================
 def main():
     Monitor_DonorSvetofor().start()
+    Monitor_CbrKeyRate().start()
     # Monitor_Sportmaster_AdidasSupernova2M().start()
 
 
