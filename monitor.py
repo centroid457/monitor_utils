@@ -138,7 +138,7 @@ class _TagAddressChunk(NamedTuple):
 # =====================================================================================================================
 class _MonitorURL(_SmtpSender, threading.Thread):
     """
-    last interface!
+    base class for final monitors!
     monitoring on URL some value.
     if found new value - remember it and send mail alert!
     """
@@ -148,24 +148,26 @@ class _MonitorURL(_SmtpSender, threading.Thread):
     MONITOR_INTERVAL_SEC: int = 1*1*60
     MONITOR_TAG__FIND_CHAIN: List[_TagAddressChunk] = []
     MONITOR_TAG__ATTR_GET: Optional[str] = None     # if need text from found tag - leave blank!
+    monitor_tag__value_last: Any = None  # if need first Alert - leave blank!
+
+    # internal ----------------------------------
     _monitor_source: str = ""
     _monitor_tag__found_last: Optional[BeautifulSoup] = None
-    monitor_tag__value_last: Any = None  # if need first Alert - leave blank!
     _monitor_tag__value_prelast: Any = None
-
-    _monitor_msg_body: str = ""
+    monitor_msg_body: str = ""
+    monitor_alert_state: bool = None
 
     # DONT TOUCH! -------------------------------
     def run(self):
         while True:
-            if self.monitor_check_state_need_alert():
-                self.smtp_send(subject=f"[ALERT] {self.MONITOR_NAME}", body=self._monitor_msg_body)
+            if self.monitor_alert_state__check():
+                self.smtp_send(subject=f"[ALERT] {self.MONITOR_NAME}", body=self.monitor_msg_body)
 
-            print(self._monitor_msg_body)
+            print(self.monitor_msg_body)
             time.sleep(self.MONITOR_INTERVAL_SEC)
 
     def monitor_reinit_values(self) -> True:
-        self._monitor_msg_body = time.strftime("%Y.%m.%d %H:%M:%S=")
+        self.monitor_msg_body = time.strftime("%Y.%m.%d %H:%M:%S=")
         self._monitor_source = ""
         self._monitor_tag__found_last = None
 
@@ -178,17 +180,17 @@ class _MonitorURL(_SmtpSender, threading.Thread):
             self._monitor_source = response.text
             return True
         except Exception as exx:
-            self._monitor_msg_body += f"LOST URL {exx!r}"
+            self.monitor_msg_body += f"LOST URL {exx!r}"
 
     def monitor_source__apply_chain(self) -> Optional[bool]:
         if self._monitor_source:
             try:
                 self._monitor_tag__found_last = BeautifulSoup(markup=self._monitor_source, features='html.parser')
             except Exception as exx:
-                self._monitor_msg_body += f"[CRITICAL] can't parse {self._monitor_source=}\n{exx!r}"
+                self.monitor_msg_body += f"[CRITICAL] can't parse {self._monitor_source=}\n{exx!r}"
                 return
         else:
-            self._monitor_msg_body += f"[CRITICAL] empty {self._monitor_source=}"
+            self.monitor_msg_body += f"[CRITICAL] empty {self._monitor_source=}"
             return
 
         try:
@@ -196,7 +198,7 @@ class _MonitorURL(_SmtpSender, threading.Thread):
                 tags = self._monitor_tag__found_last.find_all(name=chunk.name, attrs=chunk.attrs, string=chunk.string, limit=chunk.index + 1)
                 self._monitor_tag__found_last = tags[chunk.index]
         except Exception as exx:
-            self._monitor_msg_body += f"URL WAS CHANGED! can't find {chunk=}\n{exx!r}"
+            self.monitor_msg_body += f"URL WAS CHANGED! can't find {chunk=}\n{exx!r}"
             return
 
         return True
@@ -215,12 +217,13 @@ class _MonitorURL(_SmtpSender, threading.Thread):
         return True
 
     # OVERWRITE -------------------------------
-    def monitor_check_state_need_alert(self) -> bool:
+    def monitor_alert_state__check(self) -> bool:
         """
         True - if need ALERT!
         the only one way to return False - all funcs get true(correctly finished) and old value == newValue.
         Otherwise need send email!!!
         """
+        result = True
         if all([
             self.monitor_reinit_values(),
             self.monitor_source__load(),
@@ -229,17 +232,24 @@ class _MonitorURL(_SmtpSender, threading.Thread):
             ]):
 
             if self.monitor_tag__value_last != self._monitor_tag__value_prelast:
-                self._monitor_msg_body += f"DETECTED CHANGE[{self._monitor_tag__value_prelast}->{self.monitor_tag__value_last}]"
+                self.monitor_msg_body += f"DETECTED CHANGE[{self._monitor_tag__value_prelast}->{self.monitor_tag__value_last}]"
             else:
-                self._monitor_msg_body += f"SameState[{self._monitor_tag__value_prelast}->{self.monitor_tag__value_last}]"
-                return False
+                self.monitor_msg_body += f"SameState[{self._monitor_tag__value_prelast}->{self.monitor_tag__value_last}]"
+                result = False
 
-        return True
+        self.monitor_alert_state = result
+        return result
 
 
 # =====================================================================================================================
-# =====================================================================================================================
-# =====================================================================================================================
+pass    # IMPLEMENTATIONS =============================================================================================
+pass    # IMPLEMENTATIONS =============================================================================================
+pass    # IMPLEMENTATIONS =============================================================================================
+pass    # IMPLEMENTATIONS =============================================================================================
+pass    # IMPLEMENTATIONS =============================================================================================
+pass    # IMPLEMENTATIONS =============================================================================================
+
+
 # IMPLEMENTATIONS =====================================================================================================
 
 # =====================================================================================================================
