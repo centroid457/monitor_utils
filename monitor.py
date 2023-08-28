@@ -415,7 +415,7 @@ class Monitor_ConquestS23_comments(_MonitorURL):
         _TagAddressChunk("div", {"class": "comments-tab__quatity"}, None, 0),
     ]
     MONITOR_TAG__ATTR_GET = None
-    monitor_tag__value_last = "47"
+    monitor_tag__value_last = "48"
     MONITOR_INTERVAL_SEC = 1*60*60
 
 
