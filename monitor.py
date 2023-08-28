@@ -143,7 +143,6 @@ class _MonitorURL(_SmtpSender, threading.Thread):
     if found new value - remember it and send mail alert!
     """
     # OVERWRITING NEXT -------------------------------
-    MONITOR_NAME: str = "MONITOR_NAME"
     MONITOR_URL: str = "https://mail.ru/"
     MONITOR_INTERVAL_SEC: int = 1*1*60
     MONITOR_TAG__FIND_CHAIN: List[_TagAddressChunk] = []
@@ -157,11 +156,15 @@ class _MonitorURL(_SmtpSender, threading.Thread):
     monitor_msg_body: str = ""
     monitor_alert_state: bool = None
 
+    @property
+    def MONITOR_NAME(self):
+        return self.__class__.__name__
+
     # DONT TOUCH! -------------------------------
     def run(self):
         while True:
             if self.monitor_alert_state__check():
-                self.smtp_send(subject=f"[ALERT] {self.MONITOR_NAME}", body=self.monitor_msg_body)
+                self.smtp_send(subject=f"[ALERT]{self.MONITOR_NAME}", body=self.monitor_msg_body)
 
             print(self.monitor_msg_body)
             time.sleep(self.MONITOR_INTERVAL_SEC)
@@ -285,7 +288,6 @@ class Monitor_DonorSvetofor(_MonitorURL):
     _donor_blood_rh: str = "+"
 
     # OVERWRITTEN NOW -------------------------------
-    MONITOR_NAME = "DONOR_SVETOFOR"
     MONITOR_URL = "https://donor.mos.ru/donoru/donorskij-svetofor/"
     MONITOR_TAG__FIND_CHAIN = [
         _TagAddressChunk("table", {"class": "donor-svetofor-restyle"}, None, 0),
@@ -347,7 +349,6 @@ class Monitor_CbrKeyRate(_MonitorURL):
     # KEEP FIRST!
 
     # OVERWRITTEN NOW -------------------------------
-    MONITOR_NAME = "CBR_KEYRATE"
     MONITOR_URL = "https://cbr.ru/hd_base/KeyRate/"
     MONITOR_TAG__FIND_CHAIN = [
         _TagAddressChunk("div", {"class": "table-wrapper"}, None, 0),
@@ -355,6 +356,66 @@ class Monitor_CbrKeyRate(_MonitorURL):
     ]
     MONITOR_TAG__ATTR_GET = None
     monitor_tag__value_last = "12,00"
+    MONITOR_INTERVAL_SEC = 1*60*60
+
+
+# =====================================================================================================================
+class Monitor_ConquestS23_comments(_MonitorURL):
+    """
+    MONITOR CentralBankRussia KeyRate
+
+    # STRUCTURE to find -------------------------------------
+<div class="table-wrapper">
+  <div class="table-caption gray">% годовых</div>
+  <div class="table">
+    <table class="data">
+      <tr>
+        <th>Дата</th>
+        <th>Ставка</th>
+      </tr>
+      <tr>
+        <td>17.08.2023</td>
+        <td>12,00</td>
+      </tr>
+      <tr>
+        <td>16.08.2023</td>
+        <td>12,00</td>
+      </tr>
+      <tr>
+        <td>15.08.2023</td>
+        <td>12,00</td>
+      </tr>
+      <tr>
+        <td>14.08.2023</td>
+        <td>8,50</td>
+      </tr>
+      <tr>
+        <td>11.08.2023</td>
+        <td>8,50</td>
+      </tr>
+      <tr>
+        <td>10.08.2023</td>
+        <td>8,50</td>
+      </tr>
+    </table>
+  </div>
+  <div class="table-caption">
+    <p>
+	  Данные доступны с  17.09.2013 по 17.08.2023.
+	  </p>
+  </div>
+</div>
+    """
+    # OVERWRITING NEXT -------------------------------
+    # KEEP FIRST!
+
+    # OVERWRITTEN NOW -------------------------------
+    MONITOR_URL = "https://exgad.ru/products/conquest-s23"
+    MONITOR_TAG__FIND_CHAIN = [
+        _TagAddressChunk("div", {"class": "comments-tab__quatity"}, None, 0),
+    ]
+    MONITOR_TAG__ATTR_GET = None
+    monitor_tag__value_last = "47"
     MONITOR_INTERVAL_SEC = 1*60*60
 
 
@@ -385,6 +446,7 @@ class Monitor_Sportmaster_AdidasSupernova2M(_MonitorURL):
 def main():
     Monitor_DonorSvetofor().start()
     Monitor_CbrKeyRate().start()
+    Monitor_ConquestS23_comments().start()
     # Monitor_Sportmaster_AdidasSupernova2M().start()
 
 
