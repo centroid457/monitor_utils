@@ -182,7 +182,7 @@ class _MonitorURL(_SmtpSender, threading.Thread):
     """
     # OVERWRITING NEXT -------------------------------
     MONITOR_URL: str = "https://mail.ru/"
-    MONITOR_INTERVAL_SEC: int = 1*1*60
+    MONITOR_INTERVAL_SEC: int = 1*60*60
     MONITOR_TAG__FIND_CHAIN: List[_TagAddressChunk] = []
     MONITOR_TAG__ATTR_GET: Optional[str] = None     # if need text from found tag - leave blank!
     monitor_tag__value_last: Any = None  # if need first Alert - leave blank!
@@ -333,7 +333,6 @@ class Monitor_DonorSvetofor(_MonitorURL):
     ]
     MONITOR_TAG__ATTR_GET = "class"
     monitor_tag__value_last = "green"
-    MONITOR_INTERVAL_SEC = 1*60*60
 
 
 # =====================================================================================================================
@@ -394,7 +393,6 @@ class Monitor_CbrKeyRate(_MonitorURL):
     ]
     MONITOR_TAG__ATTR_GET = None
     monitor_tag__value_last = "12,00"
-    MONITOR_INTERVAL_SEC = 1*60*60
 
 
 # =====================================================================================================================
@@ -454,7 +452,6 @@ class Monitor_ConquestS23_comments(_MonitorURL):
     ]
     MONITOR_TAG__ATTR_GET = None
     monitor_tag__value_last = "48"
-    MONITOR_INTERVAL_SEC = 1*60*60
 
 
 # =====================================================================================================================
