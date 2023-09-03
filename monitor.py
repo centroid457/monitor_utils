@@ -19,6 +19,10 @@ import smtplib
 
 
 # =====================================================================================================================
+class EnvNotAccepted(Exception):
+    pass
+
+
 class EnvironsOsGetterClass:
     """
     get environs from OS or use default!
@@ -77,7 +81,7 @@ class EnvironsOsGetterClass:
             if getattr(self, name) is None:
                 msg = f"[CRITICAL]there is no [{name=}] in OsEnvs and not exists default value! add it manually!!!"
                 print(msg)
-                raise Exception(msg)
+                raise EnvNotAccepted(msg)
 
 
 # =====================================================================================================================
