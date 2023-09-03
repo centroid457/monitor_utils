@@ -36,7 +36,7 @@ class EnvironsOsGetterClass:
 
         self.__env_names__detect()
         self.__env_values__update_from_os()
-        self.__env_values__check_exists()
+        self.__env_values__check_exists_or_raise()
 
     def __env_names__detect(self):
         for name in dir(self):
@@ -60,7 +60,7 @@ class EnvironsOsGetterClass:
 
                 self._envs_detected.update({name_w_prefix: env_value__os})
 
-    def __env_values__check_exists(self):
+    def __env_values__check_exists_or_raise(self):
         for name in self._envs_detected:
             if getattr(self, name) is None:
                 msg = f"[CRITICAL]there is no [{name=}] in OsEnvs and not exists default value! add it manually!!!"
