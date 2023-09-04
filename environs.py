@@ -15,14 +15,16 @@ class EnvironsOsGetterClass:
     # add all ENVS with type STR!
 
     firstly it will try to get value from OsEnv
-    then if not will be used already seted as default!
+    then if not will be used already set as default!
 
     define env NAMES
         ENV__MAIL_USER: str = None  # will find ENV__MAIL_USER/MAIL_USER
         ENV__myEnv: str = None  # will find ENV__myEnv/myEnv
         MAIL_USER: str = None  # this is not expected as env!
 
-    default VALUES
+    so if you already have Env in you Os add prefix ENV__ to use it in your class.
+
+    set default VALUES
         ENV__MAIL_USER: str = None      # no default value
         ENV__MAIL_USER: str = "hello"   # def value set!
     """
