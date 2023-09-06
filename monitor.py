@@ -15,11 +15,11 @@ from email.mime.text import MIMEText
 
 import smtplib
 
-from environs import EnvironsOsGetterClass
+from environs_os_getter_class import EnvsOsGetterClass
 
 
 # =====================================================================================================================
-class _SmtpSender(EnvironsOsGetterClass):
+class _SmtpSender(EnvsOsGetterClass):
     """
     main class to work with smtp.
     """
