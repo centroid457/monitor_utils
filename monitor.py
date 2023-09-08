@@ -1,4 +1,4 @@
-# TODO: need sav elast value! maybe in file!
+# TODO: need save last value! maybe in file!
 """
 before using add _SmtpSender.ENVirons into your OS!
 """
@@ -15,17 +15,17 @@ from email.mime.text import MIMEText
 
 import smtplib
 
-from environs_os_getter_class import EnvsOsGetterClass
+from private_values import PrivateValues
 
 
 # =====================================================================================================================
-class _SmtpSender(EnvsOsGetterClass):
+class _SmtpSender(PrivateValues):
     """
     main class to work with smtp.
     """
     # OVERWRITTEN NOW -------------------------------
-    ENV__MAIL_USER: str = None    # example@mail.ru
-    ENV__MAIL_PWD: str = None     # use thirdPartyPwd!
+    PV___MAIL_USER: str = None    # example@mail.ru
+    PV___MAIL_PWD: str = None     # use thirdPartyPwd!
 
     # OVERWRITING NEXT -------------------------------
     SMTP_SERVER = "smtp.mail.ru"
@@ -50,7 +50,7 @@ class _SmtpSender(EnvsOsGetterClass):
 
         if self._smtp is not None:
             try:
-                result = self._smtp.login(self.ENV__MAIL_USER, self.ENV__MAIL_PWD)
+                result = self._smtp.login(self.PV___MAIL_USER, self.PV___MAIL_PWD)
             except Exception as exx:
                 print(f"[CRITICAL] CANT CONNECT {exx!r}")
 
@@ -73,7 +73,7 @@ class _SmtpSender(EnvsOsGetterClass):
     def smtp_send(self, subject: str, body: Any) -> bool:
         result = False
 
-        FROM = self.ENV__MAIL_USER
+        FROM = self.PV___MAIL_USER
         TO = FROM
         SUBJECT = subject
         BODY = str(body)
