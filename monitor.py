@@ -23,11 +23,9 @@ class _SmtpSender(PrivateValues):
     """
     main class to work with smtp.
     """
-    # OVERWRITTEN NOW -------------------------------
-    PV___MAIL_USER: str = None    # example@mail.ru
-    PV___MAIL_PWD: str = None     # use thirdPartyPwd!
+    PV___SMTP_USER: str = None    # example@mail.ru
+    PV___SMTP_PWD: str = None     # use thirdPartyPwd!
 
-    # OVERWRITING NEXT -------------------------------
     SMTP_SERVER = "smtp.mail.ru"
     SMTP_PORT = 465
 
@@ -50,7 +48,7 @@ class _SmtpSender(PrivateValues):
 
         if self._smtp is not None:
             try:
-                result = self._smtp.login(self.PV___MAIL_USER, self.PV___MAIL_PWD)
+                result = self._smtp.login(self.PV___SMTP_USER, self.PV___SMTP_PWD)
             except Exception as exx:
                 print(f"[CRITICAL] CANT CONNECT {exx!r}")
 
@@ -73,7 +71,7 @@ class _SmtpSender(PrivateValues):
     def smtp_send(self, subject: str, body: Any) -> bool:
         result = False
 
-        FROM = self.PV___MAIL_USER
+        FROM = self.PV___SMTP_USER
         TO = FROM
         SUBJECT = subject
         BODY = str(body)
