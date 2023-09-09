@@ -94,14 +94,14 @@ class _SmtpSender(PrivateValues):
 
 
 # =====================================================================================================================
-class _TagAddressChunk(NamedTuple):
+class TagAddressChunk(NamedTuple):
     """
     structure to use as one step of full chain for finding Tag
     all types used as any available variant for function Tag.find_all and actually passed directly to it!
     """
-    name: Any
-    attrs: Any
-    string: Any
+    name: str
+    attrs: Dict[str, str]
+    string: Optional[str]
     index: int
 
 
@@ -115,7 +115,7 @@ class _MonitorURL(_SmtpSender, threading.Thread):
     # OVERWRITING NEXT -------------------------------
     MONITOR_URL: str = "https://mail.ru/"
     MONITOR_INTERVAL_SEC: int = 1*60*60
-    MONITOR_TAG__FIND_CHAIN: List[_TagAddressChunk] = []
+    MONITOR_TAG__FIND_CHAIN: List[TagAddressChunk] = []
     MONITOR_TAG__ATTR_GET: Optional[str] = None     # if need text from found tag - leave blank!
     monitor_tag__value_last: Any = None  # if need first Alert - leave blank!
 
@@ -260,8 +260,8 @@ class Monitor_DonorSvetofor(_MonitorURL):
     # OVERWRITTEN NOW -------------------------------
     MONITOR_URL = "https://donor.mos.ru/donoru/donorskij-svetofor/"
     MONITOR_TAG__FIND_CHAIN = [
-        _TagAddressChunk("table", {"class": "donor-svetofor-restyle"}, None, 0),
-        _TagAddressChunk("td", {}, f"Rh {_donor_blood_rh}", _donor_blood_group - 1),
+        TagAddressChunk("table", {"class": "donor-svetofor-restyle"}, None, 0),
+        TagAddressChunk("td", {}, f"Rh {_donor_blood_rh}", _donor_blood_group - 1),
     ]
     MONITOR_TAG__ATTR_GET = "class"
     monitor_tag__value_last = "green"
@@ -320,8 +320,8 @@ class Monitor_CbrKeyRate(_MonitorURL):
     # OVERWRITTEN NOW -------------------------------
     MONITOR_URL = "https://cbr.ru/hd_base/KeyRate/"
     MONITOR_TAG__FIND_CHAIN = [
-        _TagAddressChunk("div", {"class": "table-wrapper"}, None, 0),
-        _TagAddressChunk("td", {}, None, 1),
+        TagAddressChunk("div", {"class": "table-wrapper"}, None, 0),
+        TagAddressChunk("td", {}, None, 1),
     ]
     MONITOR_TAG__ATTR_GET = None
     monitor_tag__value_last = "12,00"
@@ -380,7 +380,7 @@ class Monitor_ConquestS23_comments(_MonitorURL):
     # OVERWRITTEN NOW -------------------------------
     MONITOR_URL = "https://exgad.ru/products/conquest-s23"
     MONITOR_TAG__FIND_CHAIN = [
-        _TagAddressChunk("div", {"class": "comments-tab__quatity"}, None, 0),
+        TagAddressChunk("div", {"class": "comments-tab__quatity"}, None, 0),
     ]
     MONITOR_TAG__ATTR_GET = None
     monitor_tag__value_last = "48"
@@ -402,7 +402,7 @@ class Monitor_Sportmaster_AdidasSupernova2M(_MonitorURL):
     MONITOR_NAME = "SPORTMASTER_AdidasSupernova2M"
     MONITOR_URL = "https://www.sportmaster.ru/product/29647730299/"
     MONITOR_TAG__FIND_CHAIN = [
-        _TagAddressChunk("span", {"class": "sm-amount__value"}, None, 0),
+        TagAddressChunk("span", {"class": "sm-amount__value"}, None, 0),
     ]
     MONITOR_TAG__ATTR_GET = None
     monitor_tag__value_last = "13 699 ₽"
