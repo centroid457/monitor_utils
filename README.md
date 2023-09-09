@@ -1,6 +1,6 @@
-# py.con..alerts..monitor.urls
+# monitor_url_tag_changes
 
-## ENSPIRATION
+## INSPIRATION
 Suppose you wish to give blood to the Center.
 So nowedays you need to make an appointment by websitу, BUT you can't do this while the Center actually don't need your group.
 Group necessity shown on Center website and called DonorSvetofor.
