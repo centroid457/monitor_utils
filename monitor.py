@@ -15,16 +15,16 @@ from email.mime.text import MIMEText
 
 import smtplib
 
-from private_values import PrivateValues
+from private_values import *
 
 
 # =====================================================================================================================
-class _SmtpSender(PrivateValues):
+class _SmtpSender:
     """
     main class to work with smtp.
     """
-    PV___SMTP_USER: str = None    # example@mail.ru
-    PV___SMTP_PWD: str = None     # use thirdPartyPwd!
+    SMTP_USER: str = EnvValues.get("SMTP_USER")    # example@mail.ru
+    SMTP_PWD: str = EnvValues.get("SMTP_PWD")     # use thirdPartyPwd!
 
     SMTP_SERVER = "smtp.mail.ru"
     SMTP_PORT = 465
@@ -48,7 +48,7 @@ class _SmtpSender(PrivateValues):
 
         if self._smtp is not None:
             try:
-                result = self._smtp.login(self.PV___SMTP_USER, self.PV___SMTP_PWD)
+                result = self._smtp.login(self.SMTP_USER, self.SMTP_PWD)
             except Exception as exx:
                 print(f"[CRITICAL] CANT CONNECT {exx!r}")
 
@@ -71,7 +71,7 @@ class _SmtpSender(PrivateValues):
     def smtp_send(self, subject: str, body: Any) -> bool:
         result = False
 
-        FROM = self.PV___SMTP_USER
+        FROM = self.SMTP_USER
         TO = FROM
         SUBJECT = subject
         BODY = str(body)
