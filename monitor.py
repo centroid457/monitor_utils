@@ -152,7 +152,7 @@ class _MonitorURL(threading.Thread):
     def run(self):
         while True:
             if self.monitor_alert_state__check():
-                self.send(subject=f"[ALERT]{self.MONITOR_NAME}", body=self.monitor_msg_body)
+                SmtpSender().send(subject=f"[ALERT]{self.MONITOR_NAME}", body=self.monitor_msg_body)
 
             print(self.monitor_msg_body)
             time.sleep(self.MONITOR_INTERVAL_SEC)
