@@ -1,7 +1,5 @@
 # TODO: need save last value! maybe in file!
-"""
-before using add _SmtpSender.ENVirons into your OS!
-"""
+
 
 import time
 from typing import *
@@ -19,20 +17,26 @@ from private_values import *
 
 
 # =====================================================================================================================
-class _SmtpSender:
+class SmtpAddress(NamedTuple):
+    ADDR: str
+    PORT: int
+
+
+class SmtpServers:
+    MAIL_RU: SmtpAddress = SmtpAddress("smtp.mail.ru", 465)
+
+
+# =====================================================================================================================
+class SmtpSender:
     """
     main class to work with smtp.
     """
     SMTP_USER: str = EnvValues.get("SMTP_USER")    # example@mail.ru
     SMTP_PWD: str = EnvValues.get("SMTP_PWD")     # use thirdPartyPwd!
 
-    SMTP_SERVER = "smtp.mail.ru"
-    SMTP_PORT = 465
+    SMTP_SERVER: SmtpAddress = SmtpServers.MAIL_RU
 
-    def __init__(self):
-        super().__init__()
-
-        self._smtp: Optional[smtplib.SMTP_SSL] = None
+    _smtp: Optional[smtplib.SMTP_SSL] = None
 
     # CONNECT =========================================================================================================
     def _smtp_connect(self) -> bool:
@@ -41,7 +45,7 @@ class _SmtpSender:
         if self._smtp is None:
             print(f"_smtp_connect {self.__class__.__name__}")
             try:
-                self._smtp = smtplib.SMTP_SSL(self.SMTP_SERVER, self.SMTP_PORT, timeout=5)
+                self._smtp = smtplib.SMTP_SSL(self.SMTP_SERVER.ADDR, self.SMTP_SERVER.PORT, timeout=5)
             except Exception as exx:
                 print(f"[CRITICAL] CANT CONNECT {exx!r}")
                 self._smtp_clear()
@@ -106,7 +110,7 @@ class TagAddressChunk(NamedTuple):
 
 
 # =====================================================================================================================
-class _MonitorURL(_SmtpSender, threading.Thread):
+class _MonitorURL(SmtpSender, threading.Thread):
     """
     base class for final monitors!
     monitoring on URL some value.
