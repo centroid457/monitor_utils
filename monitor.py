@@ -34,45 +34,52 @@ class SmtpSender:
     SMTP_USER: str = EnvValues.get("SMTP_USER")    # example@mail.ru
     SMTP_PWD: str = EnvValues.get("SMTP_PWD")     # use thirdPartyPwd!
 
-    SMTP_SERVER: SmtpAddress = SmtpServers.MAIL_RU
+    SERVER: SmtpAddress = SmtpServers.MAIL_RU
+    RECONNECT_TIMEOUT: int = 60
+    RECONNECT_TIMES: int = 10
 
     _smtp: Optional[smtplib.SMTP_SSL] = None
 
+    def __init__(self):
+        super().__init__()
+        self._connect()
+
     # CONNECT =========================================================================================================
-    def _smtp_connect(self) -> bool:
+    def _connect(self) -> bool:
         result = None
 
-        if self._smtp is None:
-            print(f"_smtp_connect {self.__class__.__name__}")
+        if self._check_empty():
+            print(f"_connect {self.__class__.__name__}")
             try:
-                self._smtp = smtplib.SMTP_SSL(self.SMTP_SERVER.ADDR, self.SMTP_SERVER.PORT, timeout=5)
+                self._smtp = smtplib.SMTP_SSL(self.SERVER.ADDR, self.SERVER.PORT, timeout=5)
             except Exception as exx:
-                print(f"[CRITICAL] CANT CONNECT {exx!r}")
-                self._smtp_clear()
+                print(f"[CRITICAL] CONNECT {exx!r}")
+                self._clear()
 
-        if self._smtp is not None:
+        if not self._check_empty():
             try:
                 result = self._smtp.login(self.SMTP_USER, self.SMTP_PWD)
             except Exception as exx:
-                print(f"[CRITICAL] CANT CONNECT {exx!r}")
+                print(f"[CRITICAL] LOGIN {exx!r}")
 
             print(result)
+            print("="*100)
 
         return result and result[0] in [235, 503]
 
-    def _smtp_disconnect(self) -> None:
+    def _disconnect(self) -> None:
         if self._smtp:
             self._smtp.quit()
-        self._smtp_clear()
+        self._clear()
 
-    def _smtp_clear(self) -> None:
+    def _clear(self) -> None:
         self._smtp = None
 
-    def _smtp_check_empty(self) -> bool:
+    def _check_empty(self) -> bool:
         return self._smtp is None
 
     # MSG =============================================================================================================
-    def smtp_send(self, subject: str, body: Any) -> bool:
+    def send(self, subject: str, body: Any) -> bool:
         result = False
 
         FROM = self.SMTP_USER
@@ -85,14 +92,21 @@ class SmtpSender:
         msg["From"] = FROM
         msg["To"] = TO
 
-        if self._smtp_connect():
-            print(self._smtp.send_message(msg))
-            print("-"*80)
-            print(msg)
-            print("-"*80)
-            result = True
-        else:
-            pass    # don't add print msg! it's already ON!
+        counter = 0
+        while not result and counter <= self.RECONNECT_TIMES:
+            counter += 1
+            if self._connect():
+                print(self._smtp.send_message(msg))
+                print("-"*80)
+                print(msg)
+                print("-"*80)
+                result = True
+            else:
+                print(f"[WARNING]{counter=}")
+                print("="*100)
+                print()
+                time.sleep(self.RECONNECT_TIMEOUT)
+                pass    # don't add print msg! it's already ON!
 
         return result
 
@@ -110,7 +124,7 @@ class TagAddressChunk(NamedTuple):
 
 
 # =====================================================================================================================
-class _MonitorURL(SmtpSender, threading.Thread):
+class _MonitorURL(threading.Thread):
     """
     base class for final monitors!
     monitoring on URL some value.
@@ -138,7 +152,7 @@ class _MonitorURL(SmtpSender, threading.Thread):
     def run(self):
         while True:
             if self.monitor_alert_state__check():
-                self.smtp_send(subject=f"[ALERT]{self.MONITOR_NAME}", body=self.monitor_msg_body)
+                self.send(subject=f"[ALERT]{self.MONITOR_NAME}", body=self.monitor_msg_body)
 
             print(self.monitor_msg_body)
             time.sleep(self.MONITOR_INTERVAL_SEC)
