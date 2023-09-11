@@ -19,7 +19,7 @@ class SmtpServers:
 
 
 # =====================================================================================================================
-class SmtpSender:
+class AlertSmtp:
     """
     main class to work with smtp.
     """
@@ -116,6 +116,6 @@ class SmtpSender:
 
 # =====================================================================================================================
 if __name__ == "__main__":
-    sender = SmtpSender()
+    sender = AlertSmtp()
     for subj, body, _subtype in [("[ALERT]plain123", "plain123", "plain123"), ("[ALERT]plain", "plain", "plain"), ("[ALERT]html", "<p><font color='red'>html(red)</font></p>", "html")]:
         sender.send(subj, body, _subtype)
