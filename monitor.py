@@ -8,7 +8,7 @@ import threading
 import requests
 from bs4 import BeautifulSoup
 
-from smtp_sender import *
+from alerts_msg import *
 
 
 # =====================================================================================================================
@@ -52,7 +52,7 @@ class _MonitorURL(threading.Thread):
     def run(self):
         while True:
             if self.monitor_alert_state__check():
-                AlertSmtp().send(subject=f"[ALERT]{self.MONITOR_NAME}", body=self.monitor_msg_body)
+                AlertSmtp.send(subject=f"[ALERT]{self.MONITOR_NAME}", body=self.monitor_msg_body)
 
             print(self.monitor_msg_body)
             time.sleep(self.MONITOR_INTERVAL_SEC)
