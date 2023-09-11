@@ -1,7 +1,10 @@
+import time
 from typing import *
 
-from email.mime.text import MIMEText
 import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
 from private_values import *
 
 
@@ -27,6 +30,8 @@ class SmtpSender:
     RECONNECT_TIMEOUT: int = 60
     RECONNECT_TIMES: int = 10
 
+    RECIPIENT: str = SMTP_USER
+
     _smtp: Optional[smtplib.SMTP_SSL] = None
 
     def __init__(self):
@@ -34,18 +39,18 @@ class SmtpSender:
         self._connect()
 
     # CONNECT =========================================================================================================
-    def _connect(self) -> bool:
+    def _connect(self) -> Optional[bool]:
         result = None
 
-        if self._check_empty():
-            print(f"_connect {self.__class__.__name__}")
+        if not self._smtp:
+            print(f"TRY _connect {self.__class__.__name__}")
             try:
                 self._smtp = smtplib.SMTP_SSL(self.SERVER.ADDR, self.SERVER.PORT, timeout=5)
             except Exception as exx:
                 print(f"[CRITICAL] CONNECT {exx!r}")
                 self._clear()
 
-        if not self._check_empty():
+        if self._smtp:
             try:
                 result = self._smtp.login(self.SMTP_USER, self.SMTP_PWD)
             except Exception as exx:
@@ -54,7 +59,13 @@ class SmtpSender:
             print(result)
             print("="*100)
 
-        return result and result[0] in [235, 503]
+        if result and result[0] in [235, 503]:
+            print("[READY] connection")
+            print("="*100)
+            print("="*100)
+            print("="*100)
+            print()
+            return True
 
     def _disconnect(self) -> None:
         if self._smtp:
@@ -64,40 +75,45 @@ class SmtpSender:
     def _clear(self) -> None:
         self._smtp = None
 
-    def _check_empty(self) -> bool:
-        return self._smtp is None
-
     # MSG =============================================================================================================
-    def send(self, subject: str, body: Any) -> bool:
-        result = False
-
+    def send(self, subject: str, body: Any, _subtype="plain") -> Optional[bool]:
         FROM = self.SMTP_USER
-        TO = FROM
+        TO = self.RECIPIENT
         SUBJECT = subject
         BODY = str(body)
 
-        msg = MIMEText(BODY, 'plain')
+        msg = MIMEMultipart()
         msg['Subject'] = SUBJECT
         msg["From"] = FROM
         msg["To"] = TO
+        msg.attach(MIMEText(BODY, _subtype=_subtype))
 
         counter = 0
-        while not result and counter <= self.RECONNECT_TIMES:
+        while not self._smtp and counter <= self.RECONNECT_TIMES:
             counter += 1
-            if self._connect():
-                print(self._smtp.send_message(msg))
-                print("-"*80)
-                print(msg)
-                print("-"*80)
-                result = True
-            else:
-                print(f"[WARNING]{counter=}")
-                print("="*100)
+            if not self._connect():
+                print(f"[WARNING]try {counter=}")
+                print("=" * 100)
                 print()
                 time.sleep(self.RECONNECT_TIMEOUT)
-                pass    # don't add print msg! it's already ON!
 
-        return result
+        if self._smtp:
+            try:
+                print(self._smtp.send_message(msg))
+            except Exception as exx:
+                msg = f"[CRITICAL] unexpected {exx!r}"
+                print(msg)
+                self._clear()
+                return
+
+            print("-"*80)
+            print(msg)
+            print("-"*80)
+            return True
 
 
 # =====================================================================================================================
+if __name__ == "__main__":
+    sender = SmtpSender()
+    for subj, body, _subtype in [("[ALERT]plain123", "plain123", "plain123"), ("[ALERT]plain", "plain", "plain"), ("[ALERT]html", "<p><font color='red'>html(red)</font></p>", "html")]:
+        sender.send(subj, body, _subtype)
