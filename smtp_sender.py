@@ -27,8 +27,10 @@ class SmtpSender:
     SMTP_PWD: str = EnvValues.get("SMTP_PWD")     # use thirdPartyPwd!
 
     SERVER: SmtpAddress = SmtpServers.MAIL_RU
-    RECONNECT_TIMEOUT: int = 60
-    RECONNECT_TIMES: int = 10
+    TIMEOUT_RECONNECT: int = 60
+    RECONNECT_LIMIT: int = 10
+
+    TIMEOUT_RATELIMIT: int = 600    # when EXX 451, b'Ratelimit exceeded
 
     RECIPIENT: str = SMTP_USER
 
@@ -89,13 +91,13 @@ class SmtpSender:
         msg.attach(MIMEText(BODY, _subtype=_subtype))
 
         counter = 0
-        while not self._smtp and counter <= self.RECONNECT_TIMES:
+        while not self._smtp and counter <= self.RECONNECT_LIMIT:
             counter += 1
             if not self._connect():
                 print(f"[WARNING]try {counter=}")
                 print("=" * 100)
                 print()
-                time.sleep(self.RECONNECT_TIMEOUT)
+                time.sleep(self.TIMEOUT_RECONNECT)
 
         if self._smtp:
             try:
