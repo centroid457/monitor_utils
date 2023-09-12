@@ -16,3 +16,8 @@ env/
 # TEMP
 TEMPORARY/
 -*
+
+# DISTRIBUTION
+build/
+dist/
+*.egg-info/
