@@ -37,6 +37,8 @@ class MonitorURL(threading.Thread):
     TAG_GET_ATTR: Optional[str] = None     # if need text from found tag - leave blank!
     tag_value_last: Any = None  # if need first Alert - leave blank!
 
+    ALERT_CLS: Union[AlertSmtp, Type[AlertSmtp]] = AlertSmtp
+
     # internal ----------------------------------
     _source_data: str = ""
     _tag_found_last_chain: Optional[BeautifulSoup] = None
@@ -52,7 +54,7 @@ class MonitorURL(threading.Thread):
     def run(self):
         while True:
             if self.alert_state__check():
-                AlertSmtp(subj_suffix=self.NAME, body=self.msg_body)
+                self.ALERT_CLS(subj_suffix=self.NAME, body=self.msg_body)
 
             print(self.msg_body)
             time.sleep(self.INTERVAL)
