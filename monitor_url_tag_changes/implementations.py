@@ -188,7 +188,4 @@ class Monitor_Sportmaster_AdidasSupernova2M(MonitorURL):
 
 # =====================================================================================================================
 if __name__ == "__main__":
-    Monitor_DonorSvetofor().start()
-    Monitor_CbrKeyRate().start()
-    Monitor_ConquestS23_comments().start()
-    # Monitor_Sportmaster_AdidasSupernova2M().start()
+    pass
