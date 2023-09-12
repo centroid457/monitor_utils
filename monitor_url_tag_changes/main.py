@@ -1,157 +1,335 @@
+# TODO: need save last value! maybe in file!
+
 import time
 from typing import *
 
 import threading
 
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import requests
+from bs4 import BeautifulSoup
 
-from private_values import *
-
-
-# =====================================================================================================================
-# TODO: cant solve not to use always connecting - tried many variants!
-# make decition - use only one ability to send - only by instantiating!
-# always will connecting! but always in threads! so dont mind!
-
-# =====================================================================================================================
-class SmtpAddress(NamedTuple):
-    ADDR: str
-    PORT: int
-
-
-class SmtpServers:
-    MAIL_RU: SmtpAddress = SmtpAddress("smtp.mail.ru", 465)
+from alerts_msg import *
 
 
 # =====================================================================================================================
-class AlertSmtp(threading.Thread):
-    SUBJECT_PREFIX: Optional[str] = "[ALERT]"
+class TagAddressChunk(NamedTuple):
+    """
+    structure to use as one step of full chain for finding Tag
+    all types used as any available variant for function Tag.find_all and actually passed directly to it!
+    """
+    name: str
+    attrs: Dict[str, str]
+    string: Optional[str]
+    index: int
 
-    SMTP_USER: str = PrivateEnv.get("SMTP_USER")    # example@mail.ru
-    SMTP_PWD: str = PrivateEnv.get("SMTP_PWD")     # use thirdPartyPwd!
 
-    SERVER: SmtpAddress = SmtpServers.MAIL_RU
-    TIMEOUT_RECONNECT: int = 60
-    RECONNECT_LIMIT: int = 10
+# =====================================================================================================================
+class _MonitorURL(threading.Thread):
+    """
+    base class for final monitors!
+    monitoring on URL some value.
+    if found new value - remember it and send mail alert!
+    """
+    # OVERWRITING NEXT -------------------------------
+    MONITOR_URL: str = "https://mail.ru/"
+    MONITOR_INTERVAL_SEC: int = 1*60*60
+    MONITOR_TAG__FIND_CHAIN: List[TagAddressChunk] = []
+    MONITOR_TAG__ATTR_GET: Optional[str] = None     # if need text from found tag - leave blank!
+    monitor_tag__value_last: Any = None  # if need first Alert - leave blank!
 
-    TIMEOUT_RATELIMIT: int = 600    # when EXX 451, b'Ratelimit exceeded
+    # internal ----------------------------------
+    _monitor_source: str = ""
+    _monitor_tag__found_last: Optional[BeautifulSoup] = None
+    _monitor_tag__value_prelast: Any = None
+    monitor_msg_body: str = ""
+    monitor_alert_state: bool = None
 
-    RECIPIENT: str = None   #leave None if selfSending!
+    @property
+    def MONITOR_NAME(self):
+        return self.__class__.__name__
 
-    _smtp: Optional[smtplib.SMTP_SSL] = None
-    _result: Optional[bool] = None   # careful!
+    # DONT TOUCH! -------------------------------
+    def run(self):
+        while True:
+            if self.monitor_alert_state__check():
+                AlertSmtp(subj_suffix=self.MONITOR_NAME, body=self.monitor_msg_body)
 
-    def __init__(self, body: Optional[str] = None, subj_suffix: Optional[str] = None, _subtype: Optional[str] = None):
-        super().__init__(daemon=True)
+            print(self.monitor_msg_body)
+            time.sleep(self.MONITOR_INTERVAL_SEC)
 
-        self._body: Optional[str] = body
-        self._subj_suffix:Optional[str] = subj_suffix
-        self._subtype: Optional[str] = _subtype or "plain"
+    def monitor_reinit_values(self) -> True:
+        self.monitor_msg_body = time.strftime("%Y.%m.%d %H:%M:%S=")
+        self._monitor_source = ""
+        self._monitor_tag__found_last = None
 
-        if not self.RECIPIENT:
-            self.RECIPIENT = self.SMTP_USER
+        return True
 
-        self.start()
+    def monitor_source__load(self) -> bool:
+        self._monitor_source = ""
+        try:
+            response = requests.get(self.MONITOR_URL, timeout=10)
+            self._monitor_source = response.text
+            return True
+        except Exception as exx:
+            self.monitor_msg_body += f"LOST URL {exx!r}"
 
-    def result_wait(self) -> Optional[bool]:
-        """
-        for tests mainly! but you can use!
-        :return:
-        """
-        self.join()
-        return self._result
-
-    # CONNECT =========================================================================================================
-    def _connect(self) -> Optional[bool]:
-        result = None
-        response = None
-
-        if not self._smtp_check_exists():
-            print(f"TRY _connect {self.__class__.__name__}")
+    def monitor_source__apply_chain(self) -> Optional[bool]:
+        if self._monitor_source:
             try:
-                self._smtp = smtplib.SMTP_SSL(self.SERVER.ADDR, self.SERVER.PORT, timeout=5)
+                self._monitor_tag__found_last = BeautifulSoup(markup=self._monitor_source, features='html.parser')
             except Exception as exx:
-                print(f"[CRITICAL] CONNECT [{exx!r}]")
-                self._clear()
+                self.monitor_msg_body += f"[CRITICAL] can't parse {self._monitor_source=}\n{exx!r}"
+                return
+        else:
+            self.monitor_msg_body += f"[CRITICAL] empty {self._monitor_source=}"
+            return
 
-        if self._smtp_check_exists():
-            try:
-                response = self._smtp.login(self.SMTP_USER, self.SMTP_PWD)
-            except Exception as exx:
-                print(f"[CRITICAL] LOGIN [{exx!r}]")
+        try:
+            for chunk in self.MONITOR_TAG__FIND_CHAIN:
+                tags = self._monitor_tag__found_last.find_all(name=chunk.name, attrs=chunk.attrs, string=chunk.string, limit=chunk.index + 1)
+                self._monitor_tag__found_last = tags[chunk.index]
+        except Exception as exx:
+            self.monitor_msg_body += f"URL WAS CHANGED! can't find {chunk=}\n{exx!r}"
+            return
 
-            print(response)
-            print("="*100)
+        return True
 
-        if response and response[0] in [235, 503]:
-            print("[READY] connection")
-            print("="*100)
-            print("="*100)
-            print("="*100)
-            print()
-            result = True
+    def monitor_tag__apply_value(self) -> Optional[bool]:
+        if not self._monitor_tag__found_last:
+            return
 
+        self._monitor_tag__value_prelast = self.monitor_tag__value_last
+
+        if self.MONITOR_TAG__ATTR_GET is None:
+            self.monitor_tag__value_last = self._monitor_tag__found_last.string
+        else:
+            self.monitor_tag__value_last = self._monitor_tag__found_last[self.MONITOR_TAG__ATTR_GET][0]
+
+        return True
+
+    # OVERWRITE -------------------------------
+    def monitor_alert_state__check(self) -> bool:
+        """
+        True - if need ALERT!
+        the only one way to return False - all funcs get true(correctly finished) and old value == newValue.
+        Otherwise need send email!!!
+        """
+        result = True
+        if all([
+            self.monitor_reinit_values(),
+            self.monitor_source__load(),
+            self.monitor_source__apply_chain(),
+            self.monitor_tag__apply_value(),
+            ]):
+
+            if self.monitor_tag__value_last != self._monitor_tag__value_prelast:
+                self.monitor_msg_body += f"DETECTED CHANGE[{self._monitor_tag__value_prelast}->{self.monitor_tag__value_last}]"
+            else:
+                self.monitor_msg_body += f"SameState[{self._monitor_tag__value_prelast}->{self.monitor_tag__value_last}]"
+                result = False
+
+        self.monitor_alert_state = result
         return result
 
-    def _smtp_check_exists(self) -> bool:
-        return self._smtp is not None
 
-    def _disconnect(self) -> None:
-        if self._smtp:
-            self._smtp.quit()
-        self._clear()
+# =====================================================================================================================
+pass    # IMPLEMENTATIONS =============================================================================================
+pass    # IMPLEMENTATIONS =============================================================================================
+pass    # IMPLEMENTATIONS =============================================================================================
+pass    # IMPLEMENTATIONS =============================================================================================
+pass    # IMPLEMENTATIONS =============================================================================================
+pass    # IMPLEMENTATIONS =============================================================================================
 
-    def _clear(self) -> None:
-        self._smtp = None
 
-    # MSG =============================================================================================================
-    def run(self):
-        self._result = False
-        sbj = f"{self.SUBJECT_PREFIX}{self._subj_suffix}" if self._subj_suffix else self.SUBJECT_PREFIX
-        body = str(self._body) if self._body else ""
+# IMPLEMENTATIONS =====================================================================================================
 
-        msg = MIMEMultipart()
-        msg["From"] = self.SMTP_USER
-        msg["To"] = self.RECIPIENT
-        msg['Subject'] = sbj
-        msg.attach(MIMEText(body, _subtype=self._subtype))
+# =====================================================================================================================
+class Monitor_DonorSvetofor(_MonitorURL):
+    """
+    MONITOR donor svetofor and alert when BloodCenter need your blood group!
 
-        counter = 0
-        while not self._smtp_check_exists() and counter <= self.RECONNECT_LIMIT:
-            counter += 1
-            if not self._connect():
-                print(f"[WARNING]try {counter=}")
-                print("=" * 100)
-                print()
-                time.sleep(self.TIMEOUT_RECONNECT)
+    # STRUCTURE to find -------------------------------------
+<table class="donor-svetofor-restyle">
+    <tbody>
+        <tr>
+            <th colspan="2">O (I)</th>
+            <th colspan="2">A (II)</th>
+            <th colspan="2">B (III)</th>
+            <th colspan="2">AB (IV)</th>
+        </tr>
+        <tr>
+            <td class="green">Rh +</td>
+            <td class="green">Rh –</td>
+            <td class="green">Rh +</td>
+            <td class="yellow">Rh –</td>
+            <td class="green">Rh +</td>
+            <td class="yellow">Rh –</td>
+            <td class="red">Rh +</td>
+            <td class="red">Rh –</td>
+        </tr>
+    </tbody>
+</table>
+    """
+    # OVERWRITING NEXT -------------------------------
+    # KEEP FIRST!
+    _donor_blood_group: int = 3
+    _donor_blood_rh: str = "+"
 
-        if self._smtp_check_exists():
-            try:
-                print(self._smtp.send_message(msg))
-            except Exception as exx:
-                msg = f"[CRITICAL] unexpected [{exx!r}]"
-                print(msg)
-                self._clear()
-                return
+    # OVERWRITTEN NOW -------------------------------
+    MONITOR_URL = "https://donor.mos.ru/donoru/donorskij-svetofor/"
+    MONITOR_TAG__FIND_CHAIN = [
+        TagAddressChunk("table", {"class": "donor-svetofor-restyle"}, None, 0),
+        TagAddressChunk("td", {}, f"Rh {_donor_blood_rh}", _donor_blood_group - 1),
+    ]
+    MONITOR_TAG__ATTR_GET = "class"
+    monitor_tag__value_last = "green"
 
-            print("-"*80)
-            print(msg)
-            print("-"*80)
-            self._result = True
 
-    def _send_thread(self) -> None:
-        self.start()
+# =====================================================================================================================
+class Monitor_CbrKeyRate(_MonitorURL):
+    """
+    MONITOR CentralBankRussia KeyRate
+
+    # STRUCTURE to find -------------------------------------
+<div class="table-wrapper">
+  <div class="table-caption gray">% годовых</div>
+  <div class="table">
+    <table class="data">
+      <tr>
+        <th>Дата</th>
+        <th>Ставка</th>
+      </tr>
+      <tr>
+        <td>17.08.2023</td>
+        <td>12,00</td>
+      </tr>
+      <tr>
+        <td>16.08.2023</td>
+        <td>12,00</td>
+      </tr>
+      <tr>
+        <td>15.08.2023</td>
+        <td>12,00</td>
+      </tr>
+      <tr>
+        <td>14.08.2023</td>
+        <td>8,50</td>
+      </tr>
+      <tr>
+        <td>11.08.2023</td>
+        <td>8,50</td>
+      </tr>
+      <tr>
+        <td>10.08.2023</td>
+        <td>8,50</td>
+      </tr>
+    </table>
+  </div>
+  <div class="table-caption">
+    <p>
+	  Данные доступны с  17.09.2013 по 17.08.2023.
+	  </p>
+  </div>
+</div>
+    """
+    # OVERWRITING NEXT -------------------------------
+    # KEEP FIRST!
+
+    # OVERWRITTEN NOW -------------------------------
+    MONITOR_URL = "https://cbr.ru/hd_base/KeyRate/"
+    MONITOR_TAG__FIND_CHAIN = [
+        TagAddressChunk("div", {"class": "table-wrapper"}, None, 0),
+        TagAddressChunk("td", {}, None, 1),
+    ]
+    MONITOR_TAG__ATTR_GET = None
+    monitor_tag__value_last = "12,00"
+
+
+# =====================================================================================================================
+class Monitor_ConquestS23_comments(_MonitorURL):
+    """
+    MONITOR CentralBankRussia KeyRate
+
+    # STRUCTURE to find -------------------------------------
+<div class="table-wrapper">
+  <div class="table-caption gray">% годовых</div>
+  <div class="table">
+    <table class="data">
+      <tr>
+        <th>Дата</th>
+        <th>Ставка</th>
+      </tr>
+      <tr>
+        <td>17.08.2023</td>
+        <td>12,00</td>
+      </tr>
+      <tr>
+        <td>16.08.2023</td>
+        <td>12,00</td>
+      </tr>
+      <tr>
+        <td>15.08.2023</td>
+        <td>12,00</td>
+      </tr>
+      <tr>
+        <td>14.08.2023</td>
+        <td>8,50</td>
+      </tr>
+      <tr>
+        <td>11.08.2023</td>
+        <td>8,50</td>
+      </tr>
+      <tr>
+        <td>10.08.2023</td>
+        <td>8,50</td>
+      </tr>
+    </table>
+  </div>
+  <div class="table-caption">
+    <p>
+	  Данные доступны с  17.09.2013 по 17.08.2023.
+	  </p>
+  </div>
+</div>
+    """
+    # OVERWRITING NEXT -------------------------------
+    # KEEP FIRST!
+
+    # OVERWRITTEN NOW -------------------------------
+    MONITOR_URL = "https://exgad.ru/products/conquest-s23"
+    MONITOR_TAG__FIND_CHAIN = [
+        TagAddressChunk("div", {"class": "comments-tab__quatity"}, None, 0),
+    ]
+    MONITOR_TAG__ATTR_GET = None
+    monitor_tag__value_last = "48"
+
+
+# =====================================================================================================================
+class Monitor_Sportmaster_AdidasSupernova2M(_MonitorURL):
+    """
+    MONITOR SportMasterPrices
+
+    # STRUCTURE to find -------------------------------------
+    <span data-selenium="amount" class="sm-amount__value">13 699 ₽</span>
+    """
+    # TODO: need resolve StatusCode401
+    # OVERWRITING NEXT -------------------------------
+    # KEEP FIRST!
+
+    # OVERWRITTEN NOW -------------------------------
+    MONITOR_NAME = "SPORTMASTER_AdidasSupernova2M"
+    MONITOR_URL = "https://www.sportmaster.ru/product/29647730299/"
+    MONITOR_TAG__FIND_CHAIN = [
+        TagAddressChunk("span", {"class": "sm-amount__value"}, None, 0),
+    ]
+    MONITOR_TAG__ATTR_GET = None
+    monitor_tag__value_last = "13 699 ₽"
+    MONITOR_INTERVAL_SEC = 1*60*60
 
 
 # =====================================================================================================================
 if __name__ == "__main__":
-    thread1 = AlertSmtp("thread1")
-    thread2 = AlertSmtp("thread2")
-
-    thread1.join()
-    thread2.join()
-
-    assert thread1._result is True
-    assert thread2._result is True
+    Monitor_DonorSvetofor().start()
+    Monitor_CbrKeyRate().start()
+    Monitor_ConquestS23_comments().start()
+    # Monitor_Sportmaster_AdidasSupernova2M().start()

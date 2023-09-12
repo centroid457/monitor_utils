@@ -8,17 +8,15 @@ with open("README.md", "r") as f:
 # EDIT ================================================================================================================
 # EDIT ================================================================================================================
 # EDIT ================================================================================================================
-NAME = "alerts_msg"
+NAME = "monitor_url_tag_changes"
 
 setup(
-  version="0.0.2",
-  description="All abilities to send alert msgs (threading)",
-  keywords=["smtp", "mail", "email", "alerts", "notifications", "email alerts"],
+  version="0.0.1",
+  description="monotiring exact tag on url and alert on changes by email (threading)",
+  keywords=["monitor changes", "url changes", "tag changes", "alerts", "notifications", "email alerts"],
   classifiers=[
     # "Framework :: AsyncIO",
     "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: Communications",
-    "Topic :: Communications :: Email",
 
     # EDIT ============================================================================================================
     # EDIT ============================================================================================================

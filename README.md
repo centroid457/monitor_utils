@@ -1,5 +1,6 @@
 # monitor_url_tag_changes
 
+
 ## INSPIRATION
 Suppose you wish to give blood to the Center.
 So nowadays you need to make an appointment by website, BUT you can't do this while the Center actually don't need your group.
@@ -9,19 +10,22 @@ It's not difficult but if you do it as day routine (even once a day) its quite d
 
 So I created it first as Monitor_DonorSvetofor
 
+
 ## Features
 1. Threading each monitor
 2. monitor website data changes
-* tag text
-* tag attribute
+   * tag text
+   * tag attribute
 3. Email alert if
-* monitored data changed (from last state)
-* html structure was changed so parsing can't be finished
-* url became unreachable
+   * monitored data changed (from last state)
+   * html structure was changed so parsing can't be finished
+   * url became unreachable
+
 
 ## IMPORTANT
 Now it works as Monitor_DonorSvetofor GBUZ "O.K. Gavrilov DZM Blood Center".  
 For each new monitor (URL) you need to create new instance and change settings.
+
 
 ## What do you need to use it as Monitor_DonorSvetofor
 1. install python
@@ -32,3 +36,30 @@ For each new monitor (URL) you need to create new instance and change settings.
 6. correct your BloodGroup and RH directly in code
 7. start script
 8. wait email notification
+
+
+
+## License
+See the [LICENSE](LICENSE) file for license rights and limitations (MIT).
+
+
+## Release history
+See the [HISTORY.md](HISTORY.md) file for release history.
+
+
+## Installation
+```commandline
+pip install monitor_url_tag_changes
+```
+
+## Import
+```python
+from monitor_url_tag_changes import *
+```
+
+
+## GUIDE
+See tests and source for other examples.
+
+### ___
+#### 1. add new ___ if not exists
