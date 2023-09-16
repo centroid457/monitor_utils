@@ -1,4 +1,4 @@
-# monitor_url_tag_changes
+# monitor_utils
 
 
 ## INSPIRATION
@@ -49,12 +49,13 @@ See the [HISTORY.md](HISTORY.md) file for release history.
 
 ## Installation
 ```commandline
-pip install monitor_url_tag_changes
+pip install monitor-utils
 ```
 
 ## Import
+
 ```python
-from monitor_url_tag_changes import *
+from monitor_utils import *
 ```
 
 

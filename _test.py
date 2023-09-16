@@ -6,7 +6,7 @@ from tempfile import TemporaryDirectory
 from typing import *
 import threading
 
-from monitor_url_tag_changes import *
+from monitor_utils import *
 
 
 # =====================================================================================================================

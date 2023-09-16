@@ -49,7 +49,6 @@ class MonitorUrlTag(threading.Thread):
     def NAME(self):
         return self.__class__.__name__
 
-    # DONT TOUCH! -------------------------------
     def run(self):
         while True:
             if self.alert_state__check():
@@ -108,12 +107,11 @@ class MonitorUrlTag(threading.Thread):
 
         return True
 
-    # OVERWRITE -------------------------------
     def alert_state__check(self) -> bool:
         """
         True - if need ALERT!
         the only one way to return False - all funcs get true(correctly finished) and old value == newValue.
-        Otherwise need send email!!!
+        Otherwise, need send email!!!
         """
         result = True
         if all([

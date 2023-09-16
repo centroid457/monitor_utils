@@ -1,5 +1,5 @@
 from typing import *
-from .main import *
+from .monitor_url_tag import *
 
 
 # =====================================================================================================================
@@ -31,14 +31,14 @@ class Monitor_DonorSvetofor(MonitorUrlTag):
     """
     # OVERWRITING NEXT -------------------------------
     # KEEP FIRST!
-    _donor_blood_group: int = 3
-    _donor_blood_rh: str = "+"
+    DONOR_BLOOD_GROUP: int = 3
+    DONOR_BLOOD_RH: str = "+"
 
     # OVERWRITTEN NOW -------------------------------
     URL = "https://donor.mos.ru/donoru/donorskij-svetofor/"
     TAG_CHAINS = [
         TagAddressChain("table", {"class": "donor-svetofor-restyle"}, None, 0),
-        TagAddressChain("td", {}, f"Rh {_donor_blood_rh}", _donor_blood_group - 1),
+        TagAddressChain("td", {}, f"Rh {DONOR_BLOOD_RH}", DONOR_BLOOD_GROUP - 1),
     ]
     TAG_GET_ATTR = "class"
     tag_value_last = "green"
