@@ -1,5 +1,3 @@
-# TODO: need save last value! maybe in file!
-
 import time
 from typing import *
 import pathlib
