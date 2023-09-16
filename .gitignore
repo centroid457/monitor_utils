@@ -17,6 +17,9 @@ env/
 TEMPORARY/
 -*
 
+# user saveв data
+USERDATA/
+
 # DISTRIBUTION
 build/
 dist/
