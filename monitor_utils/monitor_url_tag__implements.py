@@ -41,7 +41,7 @@ class Monitor_DonorSvetofor(MonitorUrlTag):
         TagAddressChain("td", {}, f"Rh {DONOR_BLOOD_RH}", DONOR_BLOOD_GROUP - 1),
     ]
     TAG_GET_ATTR = "class"
-    tag_value_last = "green"
+    value_last = "green"
 
 
 # =====================================================================================================================
@@ -101,7 +101,7 @@ class Monitor_CbrKeyRate(MonitorUrlTag):
         TagAddressChain("td", {}, None, 1),
     ]
     TAG_GET_ATTR = None
-    tag_value_last = "12,00"
+    value_last = "12,00"
 
 
 # =====================================================================================================================
@@ -160,7 +160,7 @@ class Monitor_ConquestS23_comments(MonitorUrlTag):
         TagAddressChain("div", {"class": "comments-tab__quatity"}, None, 0),
     ]
     TAG_GET_ATTR = None
-    tag_value_last = "48"
+    value_last = "48"
 
 
 # =====================================================================================================================
@@ -182,7 +182,7 @@ class Monitor_Sportmaster_AdidasSupernova2M(MonitorUrlTag):
         TagAddressChain("span", {"class": "sm-amount__value"}, None, 0),
     ]
     TAG_GET_ATTR = None
-    tag_value_last = "13 699 ₽"
+    value_last = "13 699 ₽"
     INTERVAL = 1 * 60 * 60
 
 

@@ -2,7 +2,8 @@
 
 import time
 from typing import *
-
+import pathlib
+import csv
 import threading
 
 import requests
@@ -35,19 +36,43 @@ class MonitorUrlTag(threading.Thread):
     INTERVAL: int = 1 * 60 * 60
     TAG_CHAINS: List[TagAddressChain] = []
     TAG_GET_ATTR: Optional[str] = None     # if need text from found tag - leave blank!
-    tag_value_last: Any = None  # if need first Alert - leave blank!
+    value_last: Any = None  # if need first Alert - leave blank!
     ALERT: Type[AlertBase] = AlertSelect.TELEGRAM
+
+    DIRPATH: pathlib.Path = pathlib.Path("USERDATA")
+    CSV_DELIMITER: str = ";"
 
     # internal ----------------------------------
     _source_data: str = ""
     _tag_found_last_chain: Optional[BeautifulSoup] = None
-    _tag_value_prelast: Any = None
+    _value_prelast: Any = None
     msg: str = ""
     alert_state: bool = None
+
+    def __init__(self):
+        super().__init__(daemon=False)
+
+        self.DIRPATH = pathlib.Path(self.DIRPATH)
+        self.FILEPATH = self.DIRPATH.joinpath(f"{self.NAME}.csv")
+
+        self.DIRPATH.mkdir(exist_ok=True)
+        if not self.FILEPATH.exists():
+            self.FILEPATH.touch(exist_ok=True)
+        self.value_last__load()
+
+        self.start()
 
     @property
     def NAME(self):
         return self.__class__.__name__
+
+    def value_last__load(self) -> None:
+        pass
+
+    def value_last__save(self) -> None:
+        with open(self.FILEPATH, "w", newline='') as ofilepath:
+            writer = csv.writer(ofilepath, delimiter=self.CSV_DELIMITER)
+            writer.writerow([time.strftime("%Y.%m.%d %H:%M:%S"), self.value_last])
 
     def run(self):
         while True:
@@ -71,10 +96,11 @@ class MonitorUrlTag(threading.Thread):
             self.tag__apply_value(),
             ]):
 
-            if self.tag_value_last != self._tag_value_prelast:
-                self.msg += f"DETECTED CHANGE[{self._tag_value_prelast}->{self.tag_value_last}]"
+            if self.value_last != self._value_prelast:
+                self.msg += f"DETECTED CHANGE[{self._value_prelast}->{self.value_last}]"
+                self.value_last__save()
             else:
-                self.msg += f"SameState[{self._tag_value_prelast}->{self.tag_value_last}]"
+                self.msg += f"SameState[{self._value_prelast}->{self.value_last}]"
                 result = False
 
         self.alert_state = result
@@ -120,12 +146,12 @@ class MonitorUrlTag(threading.Thread):
         if not self._tag_found_last_chain:
             return
 
-        self._tag_value_prelast = self.tag_value_last
+        self._value_prelast = self.value_last
 
         if self.TAG_GET_ATTR is None:
-            self.tag_value_last = self._tag_found_last_chain.string
+            self.value_last = self._tag_found_last_chain.string
         else:
-            self.tag_value_last = self._tag_found_last_chain[self.TAG_GET_ATTR][0]
+            self.value_last = self._tag_found_last_chain[self.TAG_GET_ATTR][0]
 
         return True
 
