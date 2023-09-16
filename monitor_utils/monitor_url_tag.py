@@ -36,7 +36,6 @@ class MonitorUrlTag(threading.Thread):
     INTERVAL: int = 1 * 60 * 60
     TAG_CHAINS: List[TagAddressChain] = []
     TAG_GET_ATTR: Optional[str] = None     # if need text from found tag - leave blank!
-    value_last: Any = None  # if need first Alert - leave blank!
     ALERT: Type[AlertBase] = AlertSelect.TELEGRAM
 
     DIRPATH: pathlib.Path = pathlib.Path("USERDATA")
@@ -45,7 +44,8 @@ class MonitorUrlTag(threading.Thread):
     # internal ----------------------------------
     _source_data: str = ""
     _tag_found_last_chain: Optional[BeautifulSoup] = None
-    _value_prelast: Any = None
+    value_last: str = None
+    value_prelast: str = None
     msg: str = ""
     alert_state: bool = None
 
@@ -67,10 +67,16 @@ class MonitorUrlTag(threading.Thread):
         return self.__class__.__name__
 
     def value_last__load(self) -> None:
-        pass
+        with open(self.FILEPATH, "rt", newline='') as ofilepath:
+
+            reader = csv.reader(ofilepath, delimiter=self.CSV_DELIMITER)
+            result = None
+            for line_parced in reader:
+                result = line_parced[1]
+            self.value_last = self.value_prelast = result
 
     def value_last__save(self) -> None:
-        with open(self.FILEPATH, "w", newline='') as ofilepath:
+        with open(self.FILEPATH, "a", newline='') as ofilepath:
             writer = csv.writer(ofilepath, delimiter=self.CSV_DELIMITER)
             writer.writerow([time.strftime("%Y.%m.%d %H:%M:%S"), self.value_last])
 
@@ -96,11 +102,11 @@ class MonitorUrlTag(threading.Thread):
             self.tag__apply_value(),
             ]):
 
-            if self.value_last != self._value_prelast:
-                self.msg += f"DETECTED CHANGE[{self._value_prelast}->{self.value_last}]"
+            if self.value_last != self.value_prelast:
+                self.msg += f"DETECTED CHANGE[{self.value_prelast}->{self.value_last}]"
                 self.value_last__save()
             else:
-                self.msg += f"SameState[{self._value_prelast}->{self.value_last}]"
+                self.msg += f"SameState[{self.value_prelast}->{self.value_last}]"
                 result = False
 
         self.alert_state = result
@@ -146,7 +152,7 @@ class MonitorUrlTag(threading.Thread):
         if not self._tag_found_last_chain:
             return
 
-        self._value_prelast = self.value_last
+        self.value_prelast = self.value_last
 
         if self.TAG_GET_ATTR is None:
             self.value_last = self._tag_found_last_chain.string
