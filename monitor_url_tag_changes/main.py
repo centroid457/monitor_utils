@@ -31,13 +31,12 @@ class MonitorURL(threading.Thread):
     if found new value - remember it and send mail alert!
     """
     # SETTINGS -------------------------------
-    URL: str = "https://mail.ru/"
+    URL: str = None
     INTERVAL: int = 1 * 60 * 60
     TAG_CHAINS: List[TagAddressChain] = []
     TAG_GET_ATTR: Optional[str] = None     # if need text from found tag - leave blank!
     tag_value_last: Any = None  # if need first Alert - leave blank!
-
-    ALERT: Union[AlertSmtp, Type[AlertSmtp]] = AlertSmtp
+    ALERT: Type[AlertBase] = AlertSelect.TELEGRAM
 
     # internal ----------------------------------
     _source_data: str = ""
@@ -135,5 +134,3 @@ class MonitorURL(threading.Thread):
 
 
 # =====================================================================================================================
-if __name__ == "__main__":
-    pass
