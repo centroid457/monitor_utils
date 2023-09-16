@@ -42,7 +42,7 @@ class MonitorUrlTag(threading.Thread):
     _source_data: str = ""
     _tag_found_last_chain: Optional[BeautifulSoup] = None
     _tag_value_prelast: Any = None
-    msg_body: str = ""
+    msg: str = ""
     alert_state: bool = None
 
     @property
@@ -52,13 +52,13 @@ class MonitorUrlTag(threading.Thread):
     def run(self):
         while True:
             if self.alert_state__check():
-                self.ALERT(subj_suffix=self.NAME, body=self.msg_body)
+                self.ALERT(subj_suffix=self.NAME, body=self.msg)
 
-            print(self.msg_body)
+            print(self.msg)
             time.sleep(self.INTERVAL)
 
     def reinit_values(self) -> True:
-        self.msg_body = time.strftime("%Y.%m.%d %H:%M:%S=")
+        self.msg = ""
         self._source_data = ""
         self._tag_found_last_chain = None
 
@@ -71,17 +71,17 @@ class MonitorUrlTag(threading.Thread):
             self._source_data = response.text
             return True
         except Exception as exx:
-            self.msg_body += f"LOST URL {exx!r}"
+            self.msg += f"LOST URL {exx!r}"
 
     def source__apply_chain(self) -> Optional[bool]:
         if self._source_data:
             try:
                 self._tag_found_last_chain = BeautifulSoup(markup=self._source_data, features='html.parser')
             except Exception as exx:
-                self.msg_body += f"[CRITICAL] can't parse {self._source_data=}\n{exx!r}"
+                self.msg += f"[CRITICAL] can't parse {self._source_data=}\n{exx!r}"
                 return
         else:
-            self.msg_body += f"[CRITICAL] empty {self._source_data=}"
+            self.msg += f"[CRITICAL] empty {self._source_data=}"
             return
 
         try:
@@ -89,7 +89,7 @@ class MonitorUrlTag(threading.Thread):
                 tags = self._tag_found_last_chain.find_all(name=chain.NAME, attrs=chain.ATTRS, string=chain.STRING, limit=chain.INDEX + 1)
                 self._tag_found_last_chain = tags[chain.INDEX]
         except Exception as exx:
-            self.msg_body += f"URL WAS CHANGED! can't find {chain=}\n{exx!r}"
+            self.msg += f"URL WAS CHANGED! can't find {chain=}\n{exx!r}"
             return
 
         return True
@@ -122,9 +122,9 @@ class MonitorUrlTag(threading.Thread):
             ]):
 
             if self.tag_value_last != self._tag_value_prelast:
-                self.msg_body += f"DETECTED CHANGE[{self._tag_value_prelast}->{self.tag_value_last}]"
+                self.msg += f"DETECTED CHANGE[{self._tag_value_prelast}->{self.tag_value_last}]"
             else:
-                self.msg_body += f"SameState[{self._tag_value_prelast}->{self.tag_value_last}]"
+                self.msg += f"SameState[{self._tag_value_prelast}->{self.tag_value_last}]"
                 result = False
 
         self.alert_state = result
