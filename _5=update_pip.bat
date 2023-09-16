@@ -1,4 +1,4 @@
 echo UPDATE PIP
 
-pip install -U alerts-msg
+pip install -U monitor-utils
 pause

@@ -12,18 +12,23 @@ NAME = "monitor_utils"
 
 setup(
   version="0.0.1",
-  description="monotiring exact tag on url and alert on changes by email (threading)",
-  keywords=["monitor changes", "url changes", "tag changes", "alerts", "notifications", "email alerts"],
+  description="monotiring exact data (urlTag) and alert on changes by email/telegram (threading)",
+  keywords=[
+      "monitor changes", "monitor data",
+      "url changes", "url tag changes",
+      "alerts", "notifications", "email alerts", "telegram alerts",
+  ],
   classifiers=[
+    # "Topic :: ",
+
+    # EDIT ============================================================================================================
+    # EDIT ============================================================================================================
+    # EDIT ============================================================================================================
+    # EDIT ============================================================================================================
+    # EDIT ============================================================================================================
+
     # "Framework :: AsyncIO",
     "Topic :: Software Development :: Libraries :: Python Modules",
-
-    # EDIT ============================================================================================================
-    # EDIT ============================================================================================================
-    # EDIT ============================================================================================================
-    # EDIT ============================================================================================================
-    # EDIT ============================================================================================================
-
     # "Development Status :: 5 - Production/Stable",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python",
