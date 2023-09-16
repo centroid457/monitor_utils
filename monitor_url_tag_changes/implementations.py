@@ -3,7 +3,7 @@ from .main import *
 
 
 # =====================================================================================================================
-class Monitor_DonorSvetofor(MonitorURL):
+class Monitor_DonorSvetofor(MonitorUrlTag):
     """
     MONITOR donor svetofor and alert when BloodCenter need your blood group!
 
@@ -45,7 +45,7 @@ class Monitor_DonorSvetofor(MonitorURL):
 
 
 # =====================================================================================================================
-class Monitor_CbrKeyRate(MonitorURL):
+class Monitor_CbrKeyRate(MonitorUrlTag):
     """
     MONITOR CentralBankRussia KeyRate
 
@@ -105,7 +105,7 @@ class Monitor_CbrKeyRate(MonitorURL):
 
 
 # =====================================================================================================================
-class Monitor_ConquestS23_comments(MonitorURL):
+class Monitor_ConquestS23_comments(MonitorUrlTag):
     """
     MONITOR CentralBankRussia KeyRate
 
@@ -164,7 +164,7 @@ class Monitor_ConquestS23_comments(MonitorURL):
 
 
 # =====================================================================================================================
-class Monitor_Sportmaster_AdidasSupernova2M(MonitorURL):
+class Monitor_Sportmaster_AdidasSupernova2M(MonitorUrlTag):
     """
     MONITOR SportMasterPrices
 

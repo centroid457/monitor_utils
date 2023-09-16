@@ -24,7 +24,7 @@ class TagAddressChain(NamedTuple):
 
 
 # =====================================================================================================================
-class MonitorURL(threading.Thread):
+class MonitorUrlTag(threading.Thread):
     """
     base class for final monitors!
     monitoring on URL some value.
