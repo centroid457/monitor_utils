@@ -57,11 +57,33 @@ class MonitorUrlTag(threading.Thread):
             print(self.msg)
             time.sleep(self.INTERVAL)
 
+    def alert_state__check(self) -> bool:
+        """
+        True - if need ALERT!
+        the only one way to return False - all funcs get true(correctly finished) and old value == newValue.
+        Otherwise, need send email!!!
+        """
+        result = True
+        if all([
+            self.reinit_values(),
+            self.source__load(),
+            self.source__apply_chain(),
+            self.tag__apply_value(),
+            ]):
+
+            if self.tag_value_last != self._tag_value_prelast:
+                self.msg += f"DETECTED CHANGE[{self._tag_value_prelast}->{self.tag_value_last}]"
+            else:
+                self.msg += f"SameState[{self._tag_value_prelast}->{self.tag_value_last}]"
+                result = False
+
+        self.alert_state = result
+        return result
+
     def reinit_values(self) -> True:
         self.msg = ""
         self._source_data = ""
         self._tag_found_last_chain = None
-
         return True
 
     def source__load(self) -> bool:
@@ -106,29 +128,6 @@ class MonitorUrlTag(threading.Thread):
             self.tag_value_last = self._tag_found_last_chain[self.TAG_GET_ATTR][0]
 
         return True
-
-    def alert_state__check(self) -> bool:
-        """
-        True - if need ALERT!
-        the only one way to return False - all funcs get true(correctly finished) and old value == newValue.
-        Otherwise, need send email!!!
-        """
-        result = True
-        if all([
-            self.reinit_values(),
-            self.source__load(),
-            self.source__apply_chain(),
-            self.tag__apply_value(),
-            ]):
-
-            if self.tag_value_last != self._tag_value_prelast:
-                self.msg += f"DETECTED CHANGE[{self._tag_value_prelast}->{self.tag_value_last}]"
-            else:
-                self.msg += f"SameState[{self._tag_value_prelast}->{self.tag_value_last}]"
-                result = False
-
-        self.alert_state = result
-        return result
 
 
 # =====================================================================================================================
