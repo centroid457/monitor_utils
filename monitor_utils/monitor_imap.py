@@ -1,12 +1,17 @@
 import time
 from typing import *
 import threading
+import re
 
 import imaplib
 import email
 
 from private_values import *
 from alerts_msg import *
+
+
+# =====================================================================================================================
+# TODO: realise MARK_AS_READ = False!
 
 
 # =====================================================================================================================
@@ -20,12 +25,14 @@ class ServersImap:
 
 
 # =====================================================================================================================
-class MonitorImap(threading.Thread):
+class MonitorImapMailSubjects(threading.Thread):
     INTERVAL: int = 1 * 1 * 10
 
     SERVER: AddressImap = ServersImap.MAIL_RU
     AUTH: PrivateJsonAuth = PrivateJsonAuth().get_section("AUTH_EMAIL")
     FOLDER: str = "!_TRADINGVIEW"
+    SUBJECT_REGEXP: Optional[str] = None    # None - for all
+    MARK_AS_READ: bool = True
 
     ALERT: Type[AlertBase] = AlertSelect.TELEGRAM
     _imap: Optional[imaplib.IMAP4_SSL] = None
@@ -70,7 +77,8 @@ class MonitorImap(threading.Thread):
             if self.imap_connect():
                 subjects = self.imap_unseen_subject_list()
                 for subject in subjects:
-                    self.ALERT(subject)
+                    if re.fullmatch(self.SUBJECT_REGEXP, subject):
+                        self.ALERT(subject)
 
             self.imap_disconnect()
             time.sleep(self.INTERVAL)
@@ -84,17 +92,16 @@ class MonitorImap(threading.Thread):
                 _, msg = self._imap.fetch(num, '(RFC822)')
                 msg = email.message_from_bytes(msg[0][1])
 
-                subject = None
                 try:
                     # has russian
                     subject = email.header.decode_header(msg["Subject"])[0][0].decode()
-                except:
+                except Exception as exx:
                     # english only!
                     subject = msg["Subject"]
 
                 subject = subject or ""
                 result.append(subject)
-        except:
+        except Exception as exx:
             self.imap_clear()
 
         return result
