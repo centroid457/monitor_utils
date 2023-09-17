@@ -12,6 +12,7 @@ from alerts_msg import *
 
 # =====================================================================================================================
 # TODO: realise MARK_AS_READ = False!
+# TODO: start reading from last read not just unseen!
 
 
 # =====================================================================================================================
@@ -25,12 +26,12 @@ class ServersImap:
 
 
 # =====================================================================================================================
-class MonitorImapMailSubjects(threading.Thread):
+class MonitorImap(threading.Thread):
     INTERVAL: int = 1 * 1 * 10
 
     SERVER: AddressImap = ServersImap.MAIL_RU
     AUTH: PrivateJsonAuth = PrivateJsonAuth().get_section("AUTH_EMAIL")
-    FOLDER: str = "!_TRADINGVIEW"
+    FOLDER: Optional[str] = None    # None - for Inbox/Входящие!
     SUBJECT_REGEXP: Optional[str] = None    # None - for all
     MARK_AS_READ: bool = True
 
@@ -43,7 +44,7 @@ class MonitorImapMailSubjects(threading.Thread):
         self.start()
 
     # CONNECT =========================================================================================================
-    def _connect(self) -> bool:
+    def _connect(self) -> Union[bool, NoReturn]:
         if self._conn:
             return True
 
@@ -55,10 +56,23 @@ class MonitorImapMailSubjects(threading.Thread):
 
         if self._conn:
             print(self._conn.login(self.AUTH.USER, self.AUTH.PWD))
-            print(self._conn.select(self.FOLDER))  # ('OK', [b'5'])
+            self.folder_select(self.FOLDER)
             print(self._conn.search(None, 'UNSEEN'))  # ('OK', [b''])
 
         return bool(self._conn)
+
+    def folder_select(self, name: Optional[str] = None) -> Optional[NoReturn]:
+        try:
+            if name:
+                print(self._conn.select(name))  # ('OK', [b'5'])
+            else:
+                print(self._conn.select())  # ('OK', [b'5'])
+
+        except Exception as exx:
+            msg = f"[CRITICAL] not exists [folder={name}]"
+            print(msg)
+            raise Exception(msg)
+            # raise exx
 
     def _disconnect(self) -> None:
         if self._conn:
@@ -77,11 +91,8 @@ class MonitorImapMailSubjects(threading.Thread):
             if self._connect():
                 subjects = self.get_unseen_subject_list()
                 for subject in subjects:
-                    if self.SUBJECT_REGEXP:
-                        if re.fullmatch(self.SUBJECT_REGEXP, subject):
-                            self.ALERT(subject)
-                    else:
-                        self.ALERT(subject)
+                    if not self.SUBJECT_REGEXP or re.fullmatch(self.SUBJECT_REGEXP, subject):
+                        self.ALERT(subject, subj_suffix=f"{self.__class__.__name__}/{self.FOLDER or 'Inbox'}")
 
             self._disconnect()
             time.sleep(self.INTERVAL)
