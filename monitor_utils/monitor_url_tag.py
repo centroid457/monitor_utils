@@ -69,8 +69,8 @@ class MonitorUrlTag(threading.Thread):
 
             reader = csv.reader(ofilepath, delimiter=self.CSV_DELIMITER)
             result = None
-            for line_parced in reader:
-                result = line_parced[1]
+            for line_parsed in reader:
+                result = line_parsed[1]
             self.value_last = self.value_prelast = result
 
     def value_last__save(self) -> None:
