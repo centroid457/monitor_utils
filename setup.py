@@ -11,11 +11,12 @@ with open("README.md", "r") as f:
 NAME = "monitor_utils"
 
 setup(
-  version="0.0.1",
+  version="0.0.2",
   description="monotiring exact data (urlTag) and alert on changes by email/telegram (threading)",
   keywords=[
       "monitor changes", "monitor data",
-      "url changes", "url tag changes",
+      "url changes", "url tag changes", "url monitor",
+      "imap changes", "email changes", "imap monitor", "email monitor",
       "alerts", "notifications", "email alerts", "telegram alerts",
   ],
   classifiers=[

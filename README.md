@@ -66,6 +66,8 @@ See tests and source for other examples.
 
 ### 2. create new desired class for your purpose
 See [monitor_url_tag__implements.py](monitor_utils%2Fmonitor_url_tag__implements.py) for examples.
+
+#### MonitorUrlTag
 ```python
 from monitor_utils import *
 
@@ -123,3 +125,6 @@ class Monitor_CbrKeyRate(MonitorUrlTag):
     TAG_GET_ATTR = None
     value_last = "12,00"
 ```
+
+#### MonitorImap
+see source
