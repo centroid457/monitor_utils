@@ -48,7 +48,7 @@ class MonitorUrlTag(threading.Thread):
     alert_state: bool = None
 
     def __init__(self):
-        super().__init__(daemon=False)
+        super().__init__(daemon=True)
 
         self.DIRPATH = pathlib.Path(self.DIRPATH)
         self.FILEPATH = self.DIRPATH.joinpath(f"{self.NAME}.csv")
