@@ -11,6 +11,7 @@ from alerts_msg import *
 
 
 # =====================================================================================================================
+# TODO: SEPARATE BASE+INTERFACE!
 # TODO: realise MARK_AS_READ = False!
 # TODO: start reading from last read not just unseen!
 
@@ -32,15 +33,18 @@ class MonitorImap(threading.Thread):
     SERVER: AddressImap = ServersImap.MAIL_RU
     AUTH: PrivateJsonAuth = PrivateJsonAuth().get_section("AUTH_EMAIL")
     FOLDER: Optional[str] = None    # None - for Inbox/Входящие!
-    SUBJECT_REGEXP: Optional[str] = None    # None - for all
+    SUBJECT_REGEXP: Optional[str] = None    # None - for all, r"\[ALERT\]test1"
     MARK_AS_READ: bool = True
 
     ALERT: Type[AlertBase] = AlertSelect.TELEGRAM
     _conn: Optional[imaplib.IMAP4_SSL] = None
+    stop: Optional[bool] = None
+    step: int = 0
 
     def __init__(self):
-        super().__init__()
+        super().__init__(daemon=True)
 
+        self._detected: List[str] = []
         self.start()
 
     # CONNECT =========================================================================================================
@@ -92,10 +96,25 @@ class MonitorImap(threading.Thread):
                 subjects = self.get_unseen_subject_list()
                 for subject in subjects:
                     if not self.SUBJECT_REGEXP or re.fullmatch(self.SUBJECT_REGEXP, subject):
+                        self._detected.append(subject)
                         self.ALERT(subject, subj_suffix=f"{self.__class__.__name__}/{self.FOLDER or 'Inbox'}")
 
             self._disconnect()
+
+            self.step += 1
+
+            if self.stop:
+                return
             time.sleep(self.INTERVAL)
+            if self.stop:
+                return
+
+    def wait_step(self, step_finish: Optional[int] = None, sleep: int = 1) -> None:
+        if step_finish is None:
+            step_finish = self.step + 1
+
+        while self.step < step_finish:
+            time.sleep(sleep)
 
     # MAIL ============================================================================================================
     def get_unseen_subject_list(self) -> List[str]:

@@ -17,6 +17,7 @@ So I created it first as Monitor_DonorSvetofor
    * website data changes
       * tag text
       * tag attribute
+   * email received with subject (by regexp) in exact folder
 3. Email/Telegram alert if
    * monitored data changed (from last state)
    * html structure was changed so parsing can't be finished
