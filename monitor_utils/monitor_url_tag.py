@@ -96,8 +96,8 @@ class MonitorUrlTag(threading.Thread):
         if all([
             self.reinit_values(),
             self.source__load(),
-            self.source__apply_chain(),
-            self.tag__apply_value(),
+            self.source__get_tag(),
+            self.tag__get_value(),
             ]):
 
             if self.value_last != self.value_prelast:
@@ -125,7 +125,7 @@ class MonitorUrlTag(threading.Thread):
         except Exception as exx:
             self.msg += f"LOST URL {exx!r}"
 
-    def source__apply_chain(self) -> Optional[bool]:
+    def source__get_tag(self) -> Optional[bool]:
         if self._source_data:
             try:
                 self._tag_found_last_chain = BeautifulSoup(markup=self._source_data, features='html.parser')
@@ -146,7 +146,7 @@ class MonitorUrlTag(threading.Thread):
 
         return True
 
-    def tag__apply_value(self) -> Optional[bool]:
+    def tag__get_value(self) -> Optional[bool]:
         if not self._tag_found_last_chain:
             return
 
