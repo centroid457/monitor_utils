@@ -10,12 +10,16 @@ from monitor_utils import *
 
 
 # =====================================================================================================================
-def test__start_multy():
+def test__url_tag():
     Monitor_DonorSvetofor()
     Monitor_CbrKeyRate()
     Monitor_ConquestS23_comments()
 
     # Monitor_Sportmaster_AdidasSupernova2M()
+
+
+def test__imap():
+    MonitorImapMailSubjects()
 
 
 # =====================================================================================================================

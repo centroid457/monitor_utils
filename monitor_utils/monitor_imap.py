@@ -35,7 +35,7 @@ class MonitorImapMailSubjects(threading.Thread):
     MARK_AS_READ: bool = True
 
     ALERT: Type[AlertBase] = AlertSelect.TELEGRAM
-    _imap: Optional[imaplib.IMAP4_SSL] = None
+    _conn: Optional[imaplib.IMAP4_SSL] = None
 
     def __init__(self):
         super().__init__()
@@ -43,53 +43,56 @@ class MonitorImapMailSubjects(threading.Thread):
         self.start()
 
     # CONNECT =========================================================================================================
-    def imap_connect(self) -> bool:
-        if self._imap:
+    def _connect(self) -> bool:
+        if self._conn:
             return True
 
-        print(f"\n imap_connect {self.__class__.__name__}")
+        print(f"\n _connect {self.__class__.__name__}")
         try:
-            self._imap = imaplib.IMAP4_SSL(self.SERVER.ADDR, self.SERVER.PORT)
+            self._conn = imaplib.IMAP4_SSL(self.SERVER.ADDR, self.SERVER.PORT)
         except:
             pass
 
-        if self._imap:
-            print(self._imap.login(self.AUTH.USER, self.AUTH.PWD))
-            print(self._imap.select(self.FOLDER))  # ('OK', [b'5'])
-            print(self._imap.search(None, 'UNSEEN'))  # ('OK', [b''])
+        if self._conn:
+            print(self._conn.login(self.AUTH.USER, self.AUTH.PWD))
+            print(self._conn.select(self.FOLDER))  # ('OK', [b'5'])
+            print(self._conn.search(None, 'UNSEEN'))  # ('OK', [b''])
 
-        return bool(self._imap)
+        return bool(self._conn)
 
-    def imap_disconnect(self) -> None:
-        if self._imap:
-            self._imap.close()
-            self._imap.logout()
+    def _disconnect(self) -> None:
+        if self._conn:
+            self._conn.close()
+            self._conn.logout()
 
-    def imap_clear(self) -> None:
-        self._imap = None
+    def _clear(self) -> None:
+        self._conn = None
 
-    def imap_check_emply(self) -> bool:
-        return self._imap is None
+    def _conn_check_empty(self) -> bool:
+        return self._conn is None
 
     # START ===========================================================================================================
     def run(self):
         while True:
-            if self.imap_connect():
-                subjects = self.imap_unseen_subject_list()
+            if self._connect():
+                subjects = self.get_unseen_subject_list()
                 for subject in subjects:
-                    if re.fullmatch(self.SUBJECT_REGEXP, subject):
+                    if self.SUBJECT_REGEXP:
+                        if re.fullmatch(self.SUBJECT_REGEXP, subject):
+                            self.ALERT(subject)
+                    else:
                         self.ALERT(subject)
 
-            self.imap_disconnect()
+            self._disconnect()
             time.sleep(self.INTERVAL)
 
     # MAIL ============================================================================================================
-    def imap_unseen_subject_list(self) -> List[str]:
+    def get_unseen_subject_list(self) -> List[str]:
         result = []
 
         try:
-            for num in self._imap.search(None, "UNSEEN")[1][0].split():    # UNSEEN/ALL
-                _, msg = self._imap.fetch(num, '(RFC822)')
+            for num in self._conn.search(None, "UNSEEN")[1][0].split():    # UNSEEN/ALL
+                _, msg = self._conn.fetch(num, '(RFC822)')
                 msg = email.message_from_bytes(msg[0][1])
 
                 try:
@@ -102,13 +105,13 @@ class MonitorImapMailSubjects(threading.Thread):
                 subject = subject or ""
                 result.append(subject)
         except Exception as exx:
-            self.imap_clear()
+            self._clear()
 
         return result
 
     # UNSORTED ========================================================================================================
-    def _imap_data_blocks__print(self):
-        _, msg = self._imap.fetch("6", '(RFC822)')
+    def _data_blocks__print(self):
+        _, msg = self._conn.fetch("6", '(RFC822)')
         msg = email.message_from_bytes(msg[0][1])
         print(type(msg))  # <class 'email.message.Message'>
         print(list(
