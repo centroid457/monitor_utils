@@ -1,0 +1,114 @@
+import time
+from typing import *
+import threading
+
+import imaplib
+import email
+
+from private_values import *
+from alerts_msg import *
+
+
+# =====================================================================================================================
+class AddressImap(NamedTuple):
+    ADDR: str
+    PORT: int
+
+
+class ServersImap:
+    MAIL_RU: AddressImap = AddressImap("imap.mail.ru", 993)
+
+
+# =====================================================================================================================
+class MonitorImap(threading.Thread):
+    INTERVAL: int = 1 * 1 * 10
+
+    SERVER: AddressImap = ServersImap.MAIL_RU
+    AUTH: PrivateJsonAuth = PrivateJsonAuth().get_section("AUTH_EMAIL")
+    FOLDER: str = "!_TRADINGVIEW"
+
+    ALERT: Type[AlertBase] = AlertSelect.TELEGRAM
+    _imap: Optional[imaplib.IMAP4_SSL] = None
+
+    def __init__(self):
+        super().__init__()
+
+        self.start()
+
+    # CONNECT =========================================================================================================
+    def imap_connect(self) -> bool:
+        if self._imap:
+            return True
+
+        print(f"\n imap_connect {self.__class__.__name__}")
+        try:
+            self._imap = imaplib.IMAP4_SSL(self.SERVER.ADDR, self.SERVER.PORT)
+        except:
+            pass
+
+        if self._imap:
+            print(self._imap.login(self.AUTH.USER, self.AUTH.PWD))
+            print(self._imap.select(self.FOLDER))  # ('OK', [b'5'])
+            print(self._imap.search(None, 'UNSEEN'))  # ('OK', [b''])
+
+        return bool(self._imap)
+
+    def imap_disconnect(self) -> None:
+        if self._imap:
+            self._imap.close()
+            self._imap.logout()
+
+    def imap_clear(self) -> None:
+        self._imap = None
+
+    def imap_check_emply(self) -> bool:
+        return self._imap is None
+
+    # START ===========================================================================================================
+    def run(self):
+        while True:
+            if self.imap_connect():
+                subjects = self.imap_unseen_subject_list()
+                for subject in subjects:
+                    self.ALERT(subject)
+
+            self.imap_disconnect()
+            time.sleep(self.INTERVAL)
+
+    # MAIL ============================================================================================================
+    def imap_unseen_subject_list(self) -> List[str]:
+        result = []
+
+        try:
+            for num in self._imap.search(None, "UNSEEN")[1][0].split():    # UNSEEN/ALL
+                _, msg = self._imap.fetch(num, '(RFC822)')
+                msg = email.message_from_bytes(msg[0][1])
+
+                subject = None
+                try:
+                    # has russian
+                    subject = email.header.decode_header(msg["Subject"])[0][0].decode()
+                except:
+                    # english only!
+                    subject = msg["Subject"]
+
+                subject = subject or ""
+                result.append(subject)
+        except:
+            self.imap_clear()
+
+        return result
+
+    # UNSORTED ========================================================================================================
+    def _imap_data_blocks__print(self):
+        _, msg = self._imap.fetch("6", '(RFC822)')
+        msg = email.message_from_bytes(msg[0][1])
+        print(type(msg))  # <class 'email.message.Message'>
+        print(list(
+            msg))  # ['Delivered-To', 'Return-path', 'Received-SPF', 'Received', 'Received', 'DKIM-Signature', 'DKIM-Signature', 'Precedence', 'List-Id', 'List-Issue', 'List-Unsubscribe', 'List-Subscribe', 'List-Archive', 'List-Post', 'X-Felis-L', 'X-rpcampaign', 'X-Mailru-Msgtype', 'Feedback-Id', 'Message-Id', 'Date', 'From', 'To', 'Subject', 'MIME-Version', 'Content-Type', 'Content-Transfer-Encoding', 'X-Mailru-Src', 'X-4EC0790', 'X-6b629377', 'X-7564579A', 'X-77F55803', 'X-7FA49CB5', 'X-C1DE0DAB', 'X-C8649E89', 'X-D57D3AED', 'X-F696D7D5', 'X-Mailru-BIMI-Organization', 'X-Mailru-Dmarc-Auth', 'X-Mailru-ThreadID', 'X-Mras', 'X-Spam', 'Authentication-Results', 'X-Mailru-Intl-Transport']
+
+        for name in list(msg):
+            print(f"[{name}]===[{msg[name]}]")
+
+
+# =====================================================================================================================
