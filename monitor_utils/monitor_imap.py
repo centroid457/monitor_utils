@@ -36,7 +36,7 @@ class MonitorImap(threading.Thread):
     SUBJECT_REGEXP: Optional[str] = None    # None - for all, r"\[ALERT\]test1"
     MARK_AS_READ: bool = True
 
-    ALERT: Type[AlertBase] = AlertSelect.TELEGRAM
+    ALERT: Type[AlertBase] = AlertSelect.TELEGRAM_DEF
     _conn: Optional[imaplib.IMAP4_SSL] = None
     stop: Optional[bool] = None
     step: int = 0

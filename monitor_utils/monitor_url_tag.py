@@ -34,7 +34,7 @@ class MonitorUrlTag(threading.Thread):
     INTERVAL: int = 1 * 60 * 60
     TAG_CHAINS: List[TagAddressChain] = []
     TAG_GET_ATTR: Optional[str] = None     # if need text from found tag - leave blank!
-    ALERT: Type[AlertBase] = AlertSelect.TELEGRAM
+    ALERT: Type[AlertBase] = AlertSelect.TELEGRAM_DEF
 
     DIRPATH: pathlib.Path = pathlib.Path("USERDATA")
     CSV_DELIMITER: str = ";"
