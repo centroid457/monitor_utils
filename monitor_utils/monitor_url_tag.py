@@ -11,6 +11,10 @@ from alerts_msg import *
 
 
 # =====================================================================================================================
+# TODO: separate ClsBASE! see Imap!
+
+
+# =====================================================================================================================
 class TagAddressChain(NamedTuple):
     """
     structure to use as one step of full chain for finding Tag

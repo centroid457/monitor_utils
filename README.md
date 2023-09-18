@@ -1,5 +1,7 @@
 # monitor_utils
 
+## IMPORTANT!
+NOT ALL WEBSITES WORKS! Sportmaster/Acra-rating/...
 
 ## INSPIRATION
 Suppose you wish to give blood to the Center.
@@ -22,23 +24,6 @@ So I created it first as Monitor_DonorSvetofor
    * monitored data changed (from last state)
    * html structure was changed so parsing can't be finished
    * url became unreachable
-
-
-## IMPORTANT
-as for Monitor_DonorSvetofor Now it works as DonorSvetofor for GBUZ "O.K. Gavrilov DZM Blood Center".  
-For each new monitor (URL) you need to create new instance and change settings.
-
-
-## What do you need to use it as Monitor_DonorSvetofor
-1. install python
-2. download project
-3. apply project requirements
-4. add ENVIRONS on your OS for your email account (log/pwd)
-5. add script to OS autostart
-6. correct your BloodGroup and RH directly in code
-7. start script
-8. wait email notification
-
 
 
 ## License

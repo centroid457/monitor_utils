@@ -1,6 +1,8 @@
 Release History
 ===============
 
+add Monitor_AcraRaiting_GTLC
+
 0.0.2 (2023-09-17)
 -------------------
 **NEW**
