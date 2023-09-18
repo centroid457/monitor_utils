@@ -29,19 +29,17 @@ class Monitor_DonorSvetofor(MonitorUrlTag):
     </tbody>
 </table>
     """
-    # OVERWRITING NEXT -------------------------------
     # KEEP FIRST!
     DONOR_BLOOD_GROUP: int = 3
     DONOR_BLOOD_RH: str = "+"
 
-    # OVERWRITTEN NOW -------------------------------
+    # MAIN -------------------------------
     URL = "https://donor.mos.ru/donoru/donorskij-svetofor/"
     TAG_CHAINS = [
         TagAddressChain("table", {"class": "donor-svetofor-restyle"}, None, 0),
         TagAddressChain("td", {}, f"Rh {DONOR_BLOOD_RH}", DONOR_BLOOD_GROUP - 1),
     ]
     TAG_GET_ATTR = "class"
-    value_last = "green"
 
 
 # =====================================================================================================================
@@ -101,14 +99,11 @@ class Monitor_CbrKeyRate(MonitorUrlTag):
         TagAddressChain("td", {}, None, 1),
     ]
     TAG_GET_ATTR = None
-    value_last = "12,00"
 
 
 # =====================================================================================================================
 class Monitor_ConquestS23_comments(MonitorUrlTag):
     """
-    MONITOR CentralBankRussia KeyRate
-
     # STRUCTURE to find -------------------------------------
 <div class="table-wrapper">
   <div class="table-caption gray">% годовых</div>
@@ -160,14 +155,11 @@ class Monitor_ConquestS23_comments(MonitorUrlTag):
         TagAddressChain("div", {"class": "comments-tab__quatity"}, None, 0),
     ]
     TAG_GET_ATTR = None
-    value_last = "48"
 
 
 # =====================================================================================================================
 class Monitor_Sportmaster_AdidasSupernova2M(MonitorUrlTag):
     """
-    MONITOR SportMasterPrices
-
     # STRUCTURE to find -------------------------------------
     <span data-selenium="amount" class="sm-amount__value">13 699 ₽</span>
     """
@@ -176,14 +168,67 @@ class Monitor_Sportmaster_AdidasSupernova2M(MonitorUrlTag):
     # KEEP FIRST!
 
     # OVERWRITTEN NOW -------------------------------
-    MONITOR_NAME = "SPORTMASTER_AdidasSupernova2M"
     URL = "https://www.sportmaster.ru/product/29647730299/"
     TAG_CHAINS = [
         TagAddressChain("span", {"class": "sm-amount__value"}, None, 0),
     ]
     TAG_GET_ATTR = None
-    value_last = "13 699 ₽"
-    INTERVAL = 1 * 60 * 60
+
+
+# =====================================================================================================================
+class Monitor_AcraRaiting_GTLC(MonitorUrlTag):
+    """
+    NOT WORKING!
+[Try send --------------------------------------------------------------------------------
+[ALERT]Monitor_AcraRaiting_GTLC
+LOST URL SSLError(MaxRetryError("HTTPSConnectionPool(host='www.acra-ratings.ru', port=443): Max retries exceeded with url: /ratings/issuers/50/ (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)')))"))[CRITICAL] empty self._source_data=''
+2023.09.18 21:02:54
+Try send] --------------------------------------------------------------------------------
+[READY] send
+
+
+    # STRUCTURE to find -------------------------------------
+<div class="current-emit__actual-table">
+    <div class="inner-table green" data-type="ratings">
+        <div class="rating-head">
+            <div class="item-info" data-type="scale">Шкала</div>
+            <div class="item-info" data-type="rate">Рейтинг</div>
+            <div class="item-info" data-type="pressRelease">Пресс-релиз</div>
+        </div>
+        <div class="rating-list">
+            <div class="rating-item">
+                <div class="item-info dedicated" data-type="scale">Национальная рейтинговая шкала</div>
+                <div class="item-info dedicated" data-type="rate">
+                    <div class="rating-widget" >
+                        <div class="tooltip-ctrl" title="На пересмотре">
+                            <svg class="svg status-icon">
+                                <use xlink:href="/static/img/icons/symbol/sprite.svg#under-control"></use>
+                            </svg>
+                        </div>
+                        AA-(RU)     На пересмотре (развивающийся)
+                    </div>
+                </div>
+                <a
+                    class="item-info dedicated 123123"
+                    href="/press-releases/3966/"
+                    data-type="pressRelease"
+                >
+                    18 май 2023
+                    <img class="svg" src="/static/img/icons/search/link.svg">
+                </a>
+            </div>
+        </div>
+    </div>
+    """
+    TIMEOUT = 30
+    URL = "https://www.acra-ratings.ru/ratings/issuers/50/"
+    TAG_CHAINS = [
+        TagAddressChain("div", {"class": "current-emit__actual-table"}, None, 0),
+        TagAddressChain("div", {"class": "rating-list"}, None, 0),
+        TagAddressChain("div", {"class": "rating-item"}, None, 0),
+        TagAddressChain("div", {"class": "rating-widget"}, None, 0),
+    ]
+    TAG_GET_ATTR = None
 
 
 # =====================================================================================================================

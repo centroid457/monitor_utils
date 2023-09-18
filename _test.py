@@ -15,13 +15,24 @@ from alerts_msg import *
 
 
 # =====================================================================================================================
-def test__url_tag():
-    Monitor_DonorSvetofor()
-    Monitor_CbrKeyRate()
-    Monitor_ConquestS23_comments()
+class Test_UrlTag:
+    def test__1(self):
+        Monitor_DonorSvetofor()
 
-    # Monitor_Sportmaster_AdidasSupernova2M()
+    def test__2(self):
+        Monitor_CbrKeyRate()
 
+    def test__3(self):
+        Monitor_ConquestS23_comments()
+
+    def test__4(self):
+        Monitor_Sportmaster_AdidasSupernova2M()
+
+    def test__5(self):
+        Monitor_AcraRaiting_GTLC()
+
+
+# =====================================================================================================================
 @pytest.mark.parametrize(argnames="pattern", argvalues=[None, r"\[ALERT\]test1"])
 def test__imap(pattern):
     subj_suffix = "test1"
@@ -42,3 +53,4 @@ def test__imap(pattern):
 
 
 # =====================================================================================================================
+Monitor_AcraRaiting_GTLC()

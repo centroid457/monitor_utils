@@ -15,6 +15,8 @@ class TagAddressChain(NamedTuple):
     """
     structure to use as one step of full chain for finding Tag
     all types used as any available variant for function Tag.find_all and actually passed directly to it!
+
+    :param NAME: tag name
     """
     NAME: str
     ATTRS: Dict[str, str]
@@ -31,6 +33,7 @@ class MonitorUrlTag(threading.Thread):
     """
     # SETTINGS -------------------------------
     URL: str = None
+    TIMEOUT: int = 10
     INTERVAL: int = 1 * 60 * 60
     TAG_CHAINS: List[TagAddressChain] = []
     TAG_GET_ATTR: Optional[str] = None     # if need text from found tag - leave blank!
@@ -48,7 +51,7 @@ class MonitorUrlTag(threading.Thread):
     alert_state: bool = None
 
     def __init__(self):
-        super().__init__(daemon=True)
+        super().__init__(daemon=False)
 
         self.DIRPATH = pathlib.Path(self.DIRPATH)
         self.FILEPATH = self.DIRPATH.joinpath(f"{self.NAME}.csv")
@@ -119,7 +122,7 @@ class MonitorUrlTag(threading.Thread):
     def source__load(self) -> bool:
         self._source_data = ""
         try:
-            response = requests.get(self.URL, timeout=10)
+            response = requests.get(self.URL, timeout=self.TIMEOUT)
             self._source_data = response.text
             return True
         except Exception as exx:
@@ -157,6 +160,7 @@ class MonitorUrlTag(threading.Thread):
         else:
             self.value_last = self._tag_found_last_chain[self.TAG_GET_ATTR][0]
 
+        self.value_last = self.value_last.strip()
         return True
 
 
