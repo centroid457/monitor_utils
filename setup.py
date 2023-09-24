@@ -11,7 +11,7 @@ with open("README.md", "r") as f:
 NAME = "monitor_utils"
 
 setup(
-  version="0.0.2",
+  version="0.0.3",
   description="monotiring exact data (urlTag) and alert on changes by email/telegram (threading)",
   keywords=[
       "monitor changes", "monitor data",
