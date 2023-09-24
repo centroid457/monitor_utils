@@ -31,7 +31,7 @@ class MonitorImap(threading.Thread):
     INTERVAL: int = 1 * 1 * 10
 
     SERVER: AddressImap = ServersImap.MAIL_RU
-    AUTH: PrivateJsonAuth = PrivateJsonAuth().get_section("AUTH_EMAIL_DEF")
+    AUTH: PrivateAuthAuto = PrivateAuthAuto(_section="AUTH_EMAIL_DEF")
     FOLDER: Optional[str] = None    # None - for Inbox/Входящие!
     SUBJECT_REGEXP: Optional[str] = None    # None - for all, r"\[ALERT\]test1"
     MARK_AS_READ: bool = True

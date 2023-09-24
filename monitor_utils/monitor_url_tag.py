@@ -164,7 +164,8 @@ class MonitorUrlTag(threading.Thread):
         else:
             self.value_last = self._tag_found_last_chain[self.TAG_GET_ATTR][0]
 
-        self.value_last = self.value_last.strip()
+        if isinstance(self.value_last, str):
+            self.value_last = self.value_last.strip()
         return True
 
 
