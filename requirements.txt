@@ -1,4 +1,4 @@
 requests
 bs4
-private-values
-alerts-msg
+private-values==0.4.3
+alerts-msg==0.1.8
