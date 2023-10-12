@@ -17,33 +17,62 @@ from alerts_msg import *
 
 
 # =====================================================================================================================
-class AddressImap(NamedTuple):
+class ImapAddress(NamedTuple):
+    """class for keeping connection parameters/settings for exact imap server
+
+    :ivar ADDR: server address like "imap.mail.ru"
+    :ivar PORT: server port like 993
+    """
     ADDR: str
     PORT: int
 
 
-class ServersImap:
-    MAIL_RU: AddressImap = AddressImap("imap.mail.ru", 993)
+class ImapServers:
+    """well known servers addresses.
+
+    Here we must collect servers like MilRu/GmailCom, and not to create it in any new project.
+    """
+    MAIL_RU: ImapAddress = ImapAddress("imap.mail.ru", 993)
 
 
 class AlertImap(AlertSelect.TELEGRAM_DEF):
+    """Just created exact class for Alerts in Imap!
+    """
     pass
 
 
 # =====================================================================================================================
 class MonitorImap(threading.Thread):
+    """Monitor (threaded) email box for new letters. Notify if new letter appears corresponding to folder name and subject regexp.
+
+    :ivar INTERVAL: monitoring interval in seconds
+    :ivar SERVER: server address
+    :ivar AUTH: server authentication data object
+    :ivar FOLDER: email folder name where wait new emails
+        None - for Inbox/Входящие!
+    :ivar SUBJECT_REGEXP: regexp for email subject
+        None - for all,
+        example - r"\[ALERT\]test1"
+    # :ivar MARK_AS_READ: after reading mark as read - NOT REALISED!
+    :ivar ALERT: object which will send the elert
+    :ivar _conn: connection object
+    :ivar stop_flag: flag for stop monitoring, now is stops only after calculating
+    :ivar step_counter: just a counter for actually finished CALCULATING cycles
+
+    :ivar _detected: detected email objects
+    """
     INTERVAL: int = 1 * 1 * 10
 
-    SERVER: AddressImap = ServersImap.MAIL_RU
-    AUTH: PrivateAuthAuto = PrivateAuthAuto(_section="AUTH_EMAIL_DEF")
-    FOLDER: Optional[str] = None    # None - for Inbox/Входящие!
-    SUBJECT_REGEXP: Optional[str] = None    # None - for all, r"\[ALERT\]test1"
-    MARK_AS_READ: bool = True
+    SERVER: ImapAddress = ImapServers.MAIL_RU
+    AUTH: PrivateBase = PrivateAuthAuto(_section="AUTH_EMAIL_DEF")
+    FOLDER: Optional[str] = None
+    SUBJECT_REGEXP: Optional[str] = None
+    # MARK_AS_READ: bool = True
 
     ALERT: Type[AlertBase] = AlertImap
     _conn: Optional[imaplib.IMAP4_SSL] = None
-    stop: Optional[bool] = None
-    step: int = 0
+    stop_flag: Optional[bool] = None
+    step_counter: int = 0
 
     def __init__(self):
         super().__init__(daemon=True)
@@ -53,6 +82,8 @@ class MonitorImap(threading.Thread):
 
     # CONNECT =========================================================================================================
     def _connect(self) -> Union[bool, NoReturn]:
+        """connect, create connection object and establish connection.
+        """
         if self._conn:
             return True
 
@@ -70,6 +101,8 @@ class MonitorImap(threading.Thread):
         return bool(self._conn)
 
     def folder_select(self, name: Optional[str] = None) -> Optional[NoReturn]:
+        """Select folder for monitoring
+        """
         try:
             if name:
                 print(self._conn.select(name))  # ('OK', [b'5'])
@@ -82,19 +115,27 @@ class MonitorImap(threading.Thread):
             raise Exception(msg)
             # raise exx
 
-    def _disconnect(self) -> None:
+    def _conn_close(self) -> None:
+        """close connection
+        """
         if self._conn:
             self._conn.close()
             self._conn.logout()
 
-    def _clear(self) -> None:
+    def _conn_clear(self) -> None:
+        """delete conn object
+        """
         self._conn = None
 
     def _conn_check_empty(self) -> bool:
+        """check if connection obj exists
+        """
         return self._conn is None
 
     # START ===========================================================================================================
     def run(self):
+        """MAIN function working in thread
+        """
         while True:
             if self._connect():
                 subjects = self.get_unseen_subject_list()
@@ -103,25 +144,29 @@ class MonitorImap(threading.Thread):
                         self._detected.append(subject)
                         self.ALERT(subject, subj_suffix=f"{self.__class__.__name__}/{self.FOLDER or 'Inbox'}")
 
-            self._disconnect()
+            self._conn_close()
+            self.step_counter += 1
 
-            self.step += 1
-
-            if self.stop:
+            if self.stop_flag:
                 return
             time.sleep(self.INTERVAL)
-            if self.stop:
+            if self.stop_flag:
                 return
 
-    def wait_step(self, step_finish: Optional[int] = None, sleep: int = 1) -> None:
-        if step_finish is None:
-            step_finish = self.step + 1
+    def wait_cycle(self, sleep: int = 1) -> None:
+        """wait finished calculated cycles
 
-        while self.step < step_finish:
+        :param sleep: sleep period in seconds between checks
+        """
+        step_finish = self.step_counter + 1
+
+        while self.step_counter < step_finish:
             time.sleep(sleep)
 
     # MAIL ============================================================================================================
     def get_unseen_subject_list(self) -> List[str]:
+        """get all subgects for unseen emails
+        """
         result = []
 
         try:
@@ -139,12 +184,14 @@ class MonitorImap(threading.Thread):
                 subject = subject or ""
                 result.append(subject)
         except Exception as exx:
-            self._clear()
+            self._conn_clear()
 
         return result
 
     # UNSORTED ========================================================================================================
     def _data_blocks__print(self):
+        """just an explorer and research
+        """
         _, msg = self._conn.fetch("6", '(RFC822)')
         msg = email.message_from_bytes(msg[0][1])
         print(type(msg))  # <class 'email.message.Message'>

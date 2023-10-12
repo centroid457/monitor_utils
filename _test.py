@@ -35,21 +35,21 @@ class Test_UrlTag:
 # =====================================================================================================================
 @pytest.mark.parametrize(argnames="pattern", argvalues=[None, r"\[ALERT\]test1"])
 def test__imap(pattern):
-    subj_suffix = "test1"
+    _subj_name = "test1"
 
-    AlertSmtp(subj_suffix=subj_suffix)
+    AlertSmtp(_subj_name=_subj_name)
 
     victim = MonitorImap
-    victim.stop = True
+    victim.stop_flag = True
     victim.SUBJECT_REGEXP = pattern
 
     for i in range(3):
         victim_inst = victim()
-        victim_inst.wait_step(1)
-        if f"[ALERT]{subj_suffix}" in victim_inst._detected:
+        victim_inst.wait_cycle()
+        if f"[ALERT]{_subj_name}" in victim_inst._detected:
             break
 
-    assert f"[ALERT]{subj_suffix}" in victim_inst._detected
+    assert f"[ALERT]{_subj_name}" in victim_inst._detected
 
 
 # =====================================================================================================================
