@@ -26,6 +26,10 @@ class ServersImap:
     MAIL_RU: AddressImap = AddressImap("imap.mail.ru", 993)
 
 
+class AlertImap(AlertSelect.TELEGRAM_DEF):
+    pass
+
+
 # =====================================================================================================================
 class MonitorImap(threading.Thread):
     INTERVAL: int = 1 * 1 * 10
@@ -36,7 +40,7 @@ class MonitorImap(threading.Thread):
     SUBJECT_REGEXP: Optional[str] = None    # None - for all, r"\[ALERT\]test1"
     MARK_AS_READ: bool = True
 
-    ALERT: Type[AlertBase] = AlertSelect.TELEGRAM_DEF
+    ALERT: Type[AlertBase] = AlertImap
     _conn: Optional[imaplib.IMAP4_SSL] = None
     stop: Optional[bool] = None
     step: int = 0
