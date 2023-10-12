@@ -11,8 +11,8 @@ with open("README.md", "r") as f:
 NAME = "monitor_utils"
 
 setup(
-  version="0.0.3",
-  description="monotiring exact data (urlTag) and alert on changes by email/telegram (threading)",
+  version="0.0.4",
+  description="monotir exact data (urlTag/Email) and alert on changes by email/telegram (threading)",
   keywords=[
       "monitor changes", "monitor data",
       "url changes", "url tag changes", "url monitor",
@@ -30,7 +30,7 @@ setup(
 
     # "Framework :: AsyncIO",
     "Topic :: Software Development :: Libraries :: Python Modules",
-    # "Development Status :: 5 - Production/Stable",
+    "Development Status :: 5 - Production/Stable",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3 :: Only",
