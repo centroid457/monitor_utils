@@ -53,4 +53,7 @@ def test__imap(pattern):
 
 
 # =====================================================================================================================
+# Monitor_DonorSvetofor()
+# Monitor_CbrKeyRate()
+Monitor_ConquestS23_comments()
 # Monitor_AcraRaiting_GTLC()

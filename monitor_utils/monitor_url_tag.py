@@ -88,7 +88,7 @@ class MonitorUrlTag(threading.Thread):
     def run(self):
         while True:
             if self.alert_state__check():
-                self.ALERT(subj_suffix=self.NAME, body=self.msg)
+                self.ALERT(self.msg)
 
             print(self.msg)
             time.sleep(self.INTERVAL)
