@@ -220,7 +220,7 @@ Try send] ----------------------------------------------------------------------
         </div>
     </div>
     """
-    TIMEOUT = 30
+    TIMEOUT_REQUEST = 30
     URL = "https://www.acra-ratings.ru/ratings/issuers/50/"
     TAG_CHAINS = [
         TagAddressChain("div", {"class": "current-emit__actual-table"}, None, 0),

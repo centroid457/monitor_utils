@@ -54,7 +54,7 @@ class MonitorImap(threading.Thread):
         None - for all,
         example - r"\[ALERT\]test1"
     # :ivar MARK_AS_READ: after reading mark as read - NOT REALISED!
-    :ivar ALERT: object which will send the elert
+    :ivar ALERT: object which will send the alerts
     :ivar _conn: connection object
     :ivar stop_flag: flag for stop monitoring, now is stops only after calculating
     :ivar step_counter: just a counter for actually finished CALCULATING cycles
