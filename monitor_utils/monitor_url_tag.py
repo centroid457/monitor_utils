@@ -16,24 +16,37 @@ from alerts_msg import *
 
 # =====================================================================================================================
 class TagAddressChain(NamedTuple):
-    """
-    structure to use as one step of full chain for finding Tag
-    all types used as any available variant for function Tag.find_all and actually passed directly to it!
+    """structure which used as one step of full chain for finding Tag.
+    all this params directly will be passed into function Tag.find_all!
+    There is no variants - only full values!
 
-    :param NAME: tag name
+    Main goal - create several chains to point to one tag.
+
+    :param NAME: tag name for finding
+    :param ATTRS: dict with expected attr names and exact values
+        {"class": "donor-svetofor-restyle"}
+    :param TEXT: text in expected tag
+        None - if not specified
+    :param INDEX: in case of found several tags - get the exact index of them
+
+    EXAMPLES
+    --------
+    see in monitor implementations
+        TagAddressChain("table", {"class": "donor-svetofor-restyle"}, None, 0),
     """
     NAME: str
     ATTRS: Dict[str, str]
-    STRING: Optional[str]
+    TEXT: Optional[str]
     INDEX: int
 
 
 # =====================================================================================================================
 class MonitorUrlTag(threading.Thread):
-    """
-    base class for final monitors!
+    """base class for final monitors!
     monitoring on URL some value.
     if found new value - remember it and send mail alert!
+
+
     """
     # SETTINGS -------------------------------
     URL: str = None
@@ -52,7 +65,6 @@ class MonitorUrlTag(threading.Thread):
     value_last: str = None
     value_prelast: str = None
     msg: str = ""
-    alert_state: bool = None
 
     def __init__(self):
         super().__init__(daemon=False)
@@ -114,7 +126,6 @@ class MonitorUrlTag(threading.Thread):
                 self.msg += f"SameState[{self.value_prelast}->{self.value_last}]"
                 result = False
 
-        self.alert_state = result
         return result
 
     def reinit_values(self) -> True:
@@ -145,7 +156,7 @@ class MonitorUrlTag(threading.Thread):
 
         try:
             for chain in self.TAG_CHAINS:
-                tags = self._tag_found_last_chain.find_all(name=chain.NAME, attrs=chain.ATTRS, string=chain.STRING, limit=chain.INDEX + 1)
+                tags = self._tag_found_last_chain.find_all(name=chain.NAME, attrs=chain.ATTRS, string=chain.TEXT, limit=chain.INDEX + 1)
                 self._tag_found_last_chain = tags[chain.INDEX]
         except Exception as exx:
             self.msg += f"URL WAS CHANGED! can't find {chain=}\n{exx!r}"
