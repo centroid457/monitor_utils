@@ -40,7 +40,7 @@ class TagAddressChain(NamedTuple):
     INDEX: int
 
 
-class MonitorUrlTag(AlertSelect.TELEGRAM_DEF):
+class Alert_MonitorUrlTag(AlertSelect.TELEGRAM_DEF):
     """Just created exact class for Alerts!
     """
     pass
@@ -76,7 +76,7 @@ class MonitorUrlTag(threading.Thread):
     INTERVAL: int = 1 * 60 * 60
     TAG_CHAINS: List[TagAddressChain] = []
     TAG_GET_ATTR: Optional[str] = None
-    ALERT: Type[AlertBase] = MonitorUrlTag
+    ALERT: Type[AlertBase] = Alert_MonitorUrlTag
 
     DIRPATH: pathlib.Path = pathlib.Path("USERDATA")
     CSV_DELIMITER: str = ";"
@@ -95,9 +95,10 @@ class MonitorUrlTag(threading.Thread):
         self.FILEPATH = self.DIRPATH.joinpath(f"{self.NAME}.csv")
 
         self.DIRPATH.mkdir(exist_ok=True)
-        if not self.FILEPATH.exists():
+        if self.FILEPATH.exists():
+            self.value_last__load()
+        else:
             self.FILEPATH.touch(exist_ok=True)
-        self.value_last__load()
 
         self.start()
 
@@ -110,8 +111,10 @@ class MonitorUrlTag(threading.Thread):
     def value_last__load(self) -> None:
         """load last value from history
         """
-        with open(self.FILEPATH, "rt", newline='') as ofilepath:
+        if not self.FILEPATH.exists():
+            return
 
+        with open(self.FILEPATH, "rt", newline='') as ofilepath:
             reader = csv.reader(ofilepath, delimiter=self.CSV_DELIMITER)
             result = None
             for line_parsed in reader:

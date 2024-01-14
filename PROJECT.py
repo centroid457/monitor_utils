@@ -65,10 +65,13 @@ So I created it first as Monitor_DonorSvetofor
     VERSION: Tuple[int, int, int] = (0, 0, 5)
     VERSION_STR: str = ".".join(map(str, VERSION))
     TODO: List[str] = [
-        "..."
+        "check requirement for python version!"
     ]
     FIXME: List[str] = [
-        "..."
+        ["csv is not working on my new python 3.12.1x64!",
+        "[csv.reader(ofilepath, delimiter=self.CSV_DELIMITER)",
+         "module 'private_values.csv' has no attribute 'reader']"
+         ]
     ]
     NEWS: List[str] = [
         "apply new pypi template"
