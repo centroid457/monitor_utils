@@ -25,7 +25,7 @@ class PROJECT:
         # "Topic :: Communications :: Email",
     ]
     # GIT --------------------------------------------------
-    DESCRIPTION_SHORT: str = "monotir exact data (urlTag/Email) and alert on changes by email/telegram (threading)"
+    DESCRIPTION_SHORT: str = "monitor exact data (urlTag/Email) and alert on changes by email/telegram (threading)"
 
     # README -----------------------------------------------
     pass
@@ -52,7 +52,7 @@ So I created it first as Monitor_DonorSvetofor
 
         ["monitor",
          "website data changes (tag text/attribute)",
-         "email received with subject (by regexp) in exact folder", ]
+         "email received with subject (by regexp) in exact folder", ],
 
         ["Email/Telegram alert if",
         "monitored data changed (from last state)",
