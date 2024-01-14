@@ -69,8 +69,8 @@ So I created it first as Monitor_DonorSvetofor
     ]
     FIXME: List[str] = [
         ["csv is not working on my new python 3.12.1x64!",
-        "[csv.reader(ofilepath, delimiter=self.CSV_DELIMITER)",
-         "module 'private_values.csv' has no attribute 'reader']"
+        "csv.reader(ofilepath, delimiter=self.CSV_DELIMITER)",
+         "module 'private_values.csv' has no attribute 'reader'"
          ]
     ]
     NEWS: List[str] = [

@@ -1,7 +1,7 @@
 # monitor_utils (v0.0.5)
 
 ## DESCRIPTION_SHORT
-Monotir exact data (urltag/email) and alert on changes by email/telegram (threading)
+Monitor exact data (urltag/email) and alert on changes by email/telegram (threading)
 
 ## DESCRIPTION_LONG
 ## important!
