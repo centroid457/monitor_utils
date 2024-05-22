@@ -1,11 +1,13 @@
 from typing import *
+from _aux__release_files import release_files_update
+
+
+# =====================================================================================================================
+VERSION = (0, 0, 3)   # 1/deprecate _VERSION_TEMPLATE from PRJ object +2/place update_prj here in __main__ +3/separate finalize attrs
 
 
 # =====================================================================================================================
 class PROJECT:
-    # AUX --------------------------------------------------
-    _VERSION_TEMPLATE: Tuple[int] = (0, 0, 2)
-
     # AUTHOR -----------------------------------------------
     AUTHOR_NAME: str = "Andrei Starichenko"
     AUTHOR_EMAIL: str = "centroid@mail.ru"
@@ -13,7 +15,6 @@ class PROJECT:
 
     # PROJECT ----------------------------------------------
     NAME_IMPORT: str = "monitor_utils"
-    NAME_INSTALL: str = NAME_IMPORT.replace("_", "-")
     KEYWORDS: List[str] = [
         "monitor changes", "monitor data",
         "url changes", "url tag changes", "url monitor",
@@ -24,25 +25,22 @@ class PROJECT:
         # "Topic :: Communications",
         # "Topic :: Communications :: Email",
     ]
-    # GIT --------------------------------------------------
-    DESCRIPTION_SHORT: str = "monitor exact data (urlTag/Email) and alert on changes by email/telegram (threading)"
 
     # README -----------------------------------------------
-    pass
-
     # add DOUBLE SPACE at the end of all lines! for correct representation in MD-viewers
+    DESCRIPTION_SHORT: str = "monitor exact data (urlTag/Email) and alert on changes by email/telegram (threading)"
     DESCRIPTION_LONG: str = """
-## IMPORTANT!
-NOT ALL WEBSITES WORKS! Sportmaster/Acra-rating/...
+    ## IMPORTANT!
+    NOT ALL WEBSITES WORKS! Sportmaster/Acra-rating/...
 
-## INSPIRATION
-Suppose you wish to give blood to the Center.
-So nowadays you need to make an appointment by website, BUT you can't do this while the Center actually don't need your group.
-Group necessity shown on Center website and called DonorSvetofor.
-And as result you need monitoring it manually, because there are no news, email notifications, subscriptions.
-It's not difficult but if you do it as day routine (even once a day) its quite distracting.
+    ## INSPIRATION
+    Suppose you wish to give blood to the Center.
+    So nowadays you need to make an appointment by website, BUT you can't do this while the Center actually don't need your group.
+    Group necessity shown on Center website and called DonorSvetofor.
+    And as result you need monitoring it manually, because there are no news, email notifications, subscriptions.
+    It's not difficult but if you do it as day routine (even once a day) its quite distracting.
 
-So I created it first as Monitor_DonorSvetofor
+    So I created it first as Monitor_DonorSvetofor
     """
     FEATURES: List[str] = [
         # "feat1",
@@ -58,29 +56,32 @@ So I created it first as Monitor_DonorSvetofor
         "monitored data changed (from last state)",
         "html structure was changed so parsing can't be finished",
         "url became unreachable",]
-
     ]
 
     # HISTORY -----------------------------------------------
-    VERSION: Tuple[int, int, int] = (0, 0, 5)
-    VERSION_STR: str = ".".join(map(str, VERSION))
+    VERSION: Tuple[int, int, int] = (0, 0, 6)
     TODO: List[str] = [
-        "check requirement for python version!"
+        "check requirement for python version!",
     ]
     FIXME: List[str] = [
         ["csv is not working on my new python 3.12.1x64!",
-        "csv.reader(ofilepath, delimiter=self.CSV_DELIMITER)",
-         "module 'private_values.csv' has no attribute 'reader'"
+            "csv.reader(ofilepath, delimiter=self.CSV_DELIMITER)",
+            "module 'private_values.csv' has no attribute 'reader'"
          ]
     ]
     NEWS: List[str] = [
-        "apply new pypi template"
+        "[__INIT__.py] fix import",
+        "apply last pypi template",
     ]
+
+    # FINALIZE -----------------------------------------------
+    VERSION_STR: str = ".".join(map(str, VERSION))
+    NAME_INSTALL: str = NAME_IMPORT.replace("_", "-")
 
 
 # =====================================================================================================================
 if __name__ == '__main__':
-    pass
+    release_files_update(PROJECT)
 
 
 # =====================================================================================================================

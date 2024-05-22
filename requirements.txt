@@ -1,5 +1,24 @@
+# ==========================
+# VERSION = (0, 0, 1)   # just add version
+# VERSION = (0, 0, 2)   # add funcs-aux
+# VERSION = (0, 0, 3)   # add block NESTED REQUIREMENTS
+# VERSION = (0, 0, 4)   # add logger-aux
+
+# COMMON ===================
+pytest
+requirements-checker
+object-info
+funcs-aux
+logger-aux
+
+# ========================================
+# SPECIAL FOR THIS PROJECT - ROOT --------
 requests
 bs4
 private-values
 alerts-msg
 csv
+
+# NESTED ---------------------------------
+
+# ========================================

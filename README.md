@@ -1,20 +1,20 @@
-# monitor_utils (v0.0.5)
+# monitor_utils (v0.0.6)
 
 ## DESCRIPTION_SHORT
-Monitor exact data (urltag/email) and alert on changes by email/telegram (threading)
+monitor exact data (urlTag/Email) and alert on changes by email/telegram (threading)
 
 ## DESCRIPTION_LONG
-## important!
-not all websites works! sportmaster/acra-rating/...
+## IMPORTANT!
+    NOT ALL WEBSITES WORKS! Sportmaster/Acra-rating/...
 
-## inspiration
-suppose you wish to give blood to the center.
-so nowadays you need to make an appointment by website, but you can't do this while the center actually don't need your group.
-group necessity shown on center website and called donorsvetofor.
-and as result you need monitoring it manually, because there are no news, email notifications, subscriptions.
-it's not difficult but if you do it as day routine (even once a day) its quite distracting.
+    ## INSPIRATION
+    Suppose you wish to give blood to the Center.
+    So nowadays you need to make an appointment by website, BUT you can't do this while the Center actually don't need your group.
+    Group necessity shown on Center website and called DonorSvetofor.
+    And as result you need monitoring it manually, because there are no news, email notifications, subscriptions.
+    It's not difficult but if you do it as day routine (even once a day) its quite distracting.
 
-so i created it first as monitor_donorsvetofor
+    So I created it first as Monitor_DonorSvetofor
 
 
 ## Features
@@ -77,12 +77,12 @@ class Monitor_CbrKeyRate(MonitorUrlTag):
 
     # STRUCTURE to find -------------------------------------
 <div class="table-wrapper">
-  <div class="table-caption gray">% годовых</div>
+  <div class="table-caption gray">% РіРѕРґРѕРІС‹С…</div>
   <div class="table">
     <table class="data">
       <tr>
-        <th>Дата</th>
-        <th>Ставка</th>
+        <th>Р”Р°С‚Р°</th>
+        <th>РЎС‚Р°РІРєР°</th>
       </tr>
       <tr>
         <td>17.08.2023</td>
@@ -112,7 +112,7 @@ class Monitor_CbrKeyRate(MonitorUrlTag):
   </div>
   <div class="table-caption">
     <p>
-	  Данные доступны с  17.09.2013 по 17.08.2023.
+	  Р”Р°РЅРЅС‹Рµ РґРѕСЃС‚СѓРїРЅС‹ СЃ  17.09.2013 РїРѕ 17.08.2023.
 	  </p>
   </div>
 </div>
