@@ -5,19 +5,9 @@
 # VERSION = (0, 0, 4)   # add logger-aux
 
 # COMMON ===================
-pytest
-requirements-checker
-object-info
-funcs-aux
-logger-aux
 
 # ========================================
 # SPECIAL FOR THIS PROJECT - ROOT --------
-requests
-bs4
-private-values
-alerts-msg
-csv
 
 # NESTED ---------------------------------
 
